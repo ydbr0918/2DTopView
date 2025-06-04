@@ -30,7 +30,6 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         sR = GetComponent<SpriteRenderer>();
-        rb.bodyType = RigidbodyType2D.Kinematic;
 
     }
 
@@ -66,6 +65,7 @@ public class Player : MonoBehaviour
     }
 
 
+
     private void FixedUpdate()
     {
         rb.MovePosition(rb.position+velocity*Time.fixedDeltaTime);
@@ -78,6 +78,12 @@ public class Player : MonoBehaviour
             score += collision.GetComponent<ItemObject>().GetPoint();
             scoreText.text = score.ToString();
             Destroy(collision.gameObject);
+        }
+
+        if (collision.CompareTag("Ground"))
+        {
+            Debug.Log("못지나감");
+            velocity = Vector2.zero;
         }
     }
 
