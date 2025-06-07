@@ -6,8 +6,11 @@ TagManager:
   tags:
   - Item
   - Ground
+<<<<<<< HEAD
+=======
   - Door
   - Enemy
+>>>>>>> 58fe783fbd0b25810d6e710d1af490960e5272bd
   layers:
   - Default
   - TransparentFX
@@ -53,4 +56,7 @@ TagManager:
     locked: 0
   - name: Item
     uniqueID: 4252901767
+    locked: 0
+  - name: Monster
+    uniqueID: 1814374729
     locked: 0

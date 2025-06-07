@@ -8,7 +8,7 @@ using UnityEngine.SocialPlatforms.Impl;
 
 public class Player : MonoBehaviour
 {
-    float moveSpeed = 2f;
+    float moveSpeed = 5f;
 
     [SerializeField] Sprite spriteUp;
     [SerializeField] Sprite spriteDown;
@@ -30,6 +30,10 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         sR = GetComponent<SpriteRenderer>();
+<<<<<<< HEAD
+       
+=======
+>>>>>>> 58fe783fbd0b25810d6e710d1af490960e5272bd
 
     }
 
