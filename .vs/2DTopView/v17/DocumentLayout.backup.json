@@ -1,0 +1,69 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\jikan\\2DTopView\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{7DC12785-4A34-65A5-D7AC-1BB28815CCC2}|Assembly-CSharp.csproj|c:\\users\\jikan\\2dtopview\\assets\\script\\monster.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DC12785-4A34-65A5-D7AC-1BB28815CCC2}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\monster.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DC12785-4A34-65A5-D7AC-1BB28815CCC2}|Assembly-CSharp.csproj|C:\\Users\\jikan\\2DTopView\\assets\\script\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DC12785-4A34-65A5-D7AC-1BB28815CCC2}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DC12785-4A34-65A5-D7AC-1BB28815CCC2}|Assembly-CSharp.csproj|C:\\Users\\jikan\\2DTopView\\assets\\tile_asset_2\\documentation\\terms.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{7DC12785-4A34-65A5-D7AC-1BB28815CCC2}|Assembly-CSharp.csproj|solutionrelative:assets\\tile_asset_2\\documentation\\terms.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Monster.cs",
+              "DocumentMoniker": "C:\\Users\\jikan\\2DTopView\\Assets\\Script\\Monster.cs",
+              "RelativeDocumentMoniker": "Assets\\Script\\Monster.cs",
+              "ToolTip": "C:\\Users\\jikan\\2DTopView\\Assets\\Script\\Monster.cs",
+              "RelativeToolTip": "Assets\\Script\\Monster.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAAwEIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-07T20:02:12.778Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Player.cs",
+              "DocumentMoniker": "C:\\Users\\jikan\\2DTopView\\Assets\\Script\\Player.cs",
+              "RelativeDocumentMoniker": "Assets\\Script\\Player.cs",
+              "ToolTip": "C:\\Users\\jikan\\2DTopView\\Assets\\Script\\Player.cs",
+              "RelativeToolTip": "Assets\\Script\\Player.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-07T18:27:46.808Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Terms.txt",
+              "DocumentMoniker": "C:\\Users\\jikan\\2DTopView\\Assets\\Tile_Asset_2\\Documentation\\Terms.txt",
+              "RelativeDocumentMoniker": "Assets\\Tile_Asset_2\\Documentation\\Terms.txt",
+              "ToolTip": "C:\\Users\\jikan\\2DTopView\\Assets\\Tile_Asset_2\\Documentation\\Terms.txt",
+              "RelativeToolTip": "Assets\\Tile_Asset_2\\Documentation\\Terms.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2025-06-03T16:17:02.509Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
