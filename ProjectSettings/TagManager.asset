@@ -8,11 +8,12 @@ TagManager:
   - Ground
   - Door
   - Enemy
+  - Bullet
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Obstacle
   - Water
   - UI
   - 
@@ -53,4 +54,7 @@ TagManager:
     locked: 0
   - name: Item
     uniqueID: 4252901767
+    locked: 0
+  - name: Bullet
+    uniqueID: 407358759
     locked: 0

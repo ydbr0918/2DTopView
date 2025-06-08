@@ -1,45 +1,97 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
+using UnityEngine.UI;
 
-public class EnemyFollowPlayer : MonoBehaviour
+[RequireComponent(typeof(Rigidbody2D))]
+public class Enemy : MonoBehaviour
 {
-    public float moveSpeed = 2f;             // ∏ÛΩ∫≈Õ ¿Ãµø º”µµ
-    public float stopDistance = 0.5f;        // «√∑π¿ÃæÓøÕ ≥ π´ ∞°±Óøˆ¡ˆ∏È ∏ÿ√„
+    public float moveSpeed = 2f;
+    public float chaseRange = 5f;
+    public LayerMask obstacleLayer;
+    public float raycastDistance = 0.3f;
+
+    public int maxHp = 10;
+    private int currentHp;
+
+    public Image healthBarFill; // Ï≤¥Î†•Î∞î Fill Ïù¥ÎØ∏ÏßÄ
 
     private Transform player;
     private Rigidbody2D rb;
+    private Vector2 moveDirection;
 
-    private void Start()
+    void Start()
     {
-        // «√∑π¿ÃæÓ ø¿∫Í¡ß∆Æ √£±‚
-        player = GameObject.FindGameObjectWithTag("Player").transform;
+        currentHp = maxHp;
 
-        // ∏ÛΩ∫≈Õ¿« Rigidbody2D ¬¸¡∂
+        player = GameObject.FindGameObjectWithTag("Player").transform;
         rb = GetComponent<Rigidbody2D>();
     }
 
-    private void FixedUpdate()
+    public void TakeDamage(int amount)
+    {
+        currentHp -= amount;
+
+        // Ï≤¥Î†•Î∞î ÏóÖÎç∞Ïù¥Ìä∏
+        if (healthBarFill != null)
+        {
+            healthBarFill.fillAmount = (float)currentHp / maxHp;
+        }
+
+        if (currentHp <= 0)
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    // ‚úÖ Ï¥ùÏïåÏóê ÎßûÏïòÏùÑ Îïå Ï≤¥Î†• Í∞êÏÜå
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Bullet"))
+        {
+            TakeDamage(1); // Ï¥ùÏïå 1Í∞úÎãπ 1 Îç∞ÎØ∏ÏßÄ
+
+            Destroy(other.gameObject); // Ï¥ùÏïå ÏÇ≠Ï†ú
+        }
+    }
+
+    void Update()
     {
         if (player == null) return;
 
-        // πÊ«‚ ∞ËªÍ
-        Vector2 direction = (player.position - transform.position).normalized;
+        Vector2 distance = player.position - transform.position;
 
-        // «√∑π¿ÃæÓøÕ¿« ∞≈∏Æ
-        float distance = Vector2.Distance(transform.position, player.position);
-
-        // ≥ π´ ∞°±ÓøÏ∏È ∏ÿ√„
-        if (distance > stopDistance)
+        if (distance.magnitude <= chaseRange)
         {
-            // ¿Ãµø
-            rb.MovePosition(rb.position + direction * moveSpeed * Time.fixedDeltaTime);
+            if (Mathf.Abs(distance.x) > Mathf.Abs(distance.y))
+                moveDirection = new Vector2(Mathf.Sign(distance.x), 0f);
+            else
+                moveDirection = new Vector2(0f, Mathf.Sign(distance.y));
+        }
+        else
+        {
+            moveDirection = Vector2.zero;
         }
 
-        // Ω∫«¡∂Û¿Ã∆Æ π›¿¸ (¡¬øÏ πÊ«‚)
-        if (direction.x != 0)
+        if (moveDirection.x != 0)
         {
             Vector3 scale = transform.localScale;
-            scale.x = direction.x < 0 ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
+            scale.x = moveDirection.x < 0 ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
             transform.localScale = scale;
         }
+    }
+
+    void FixedUpdate()
+    {
+        if (moveDirection == Vector2.zero) return;
+
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, moveDirection, raycastDistance, obstacleLayer);
+
+        Vector2 finalDirection = moveDirection;
+
+        if (hit.collider != null)
+        {
+            finalDirection = Quaternion.Euler(0, 0, -90f) * moveDirection;
+        }
+
+        rb.MovePosition(rb.position + finalDirection.normalized * moveSpeed * Time.fixedDeltaTime);
     }
 }

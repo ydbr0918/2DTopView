@@ -1,14 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
-using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 
 public class Player : MonoBehaviour
 {
-    float moveSpeed = 2f;
+    float moveSpeed = 5f;
 
     [SerializeField] Sprite spriteUp;
     [SerializeField] Sprite spriteDown;
@@ -25,50 +22,50 @@ public class Player : MonoBehaviour
 
     [SerializeField] TextMeshProUGUI scoreText;
 
+    [Header("Shooting")]
+    [SerializeField] GameObject bulletPrefab;
+    [SerializeField] Transform bulletSpawnPoint;
+    [SerializeField] float bulletSpeed = 5f;
+
+    Transform nearestEnemy;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         sR = GetComponent<SpriteRenderer>();
-
     }
-
 
     private void Update()
     {
         input.x = Input.GetAxisRaw("Horizontal");
-        input.y = Input.GetAxisRaw("Vertical");    //방향키 상하좌우 or WASD로 움직이기 가능
-
+        input.y = Input.GetAxisRaw("Vertical");
         velocity = input.normalized * moveSpeed;
-
 
         if (input.sqrMagnitude > .01f)
         {
             if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
             {
-                if (input.x > 0)
-                    sR.sprite = spriteRight;
-                else if (input.x < 0)
-                    sR.sprite = spriteLeft;
+                sR.sprite = input.x > 0 ? spriteRight : spriteLeft;
             }
             else
             {
-                if (input.y > 0)
-                    sR.sprite = spriteUp;
-                else
-                    sR.sprite = spriteDown;
-
-
+                sR.sprite = input.y > 0 ? spriteUp : spriteDown;
             }
         }
 
+        // 에임 타겟 찾기
+        nearestEnemy = FindNearestEnemy();
+
+        // Z키로 총알 발사
+        if (Input.GetKeyDown(KeyCode.Z) && nearestEnemy != null)
+        {
+            ShootAtEnemy();
+        }
     }
-
-
 
     private void FixedUpdate()
     {
-        rb.MovePosition(rb.position+velocity*Time.fixedDeltaTime);
+        rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -87,4 +84,32 @@ public class Player : MonoBehaviour
         }
     }
 
+    // 가장 가까운 Enemy 찾기
+    private Transform FindNearestEnemy()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        Transform closest = null;
+        float minDist = float.MaxValue;
+
+        foreach (GameObject enemy in enemies)
+        {
+            float dist = Vector2.Distance(transform.position, enemy.transform.position);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                closest = enemy.transform;
+            }
+        }
+
+        return closest;
+    }
+
+    // 총알 발사 함수
+    private void ShootAtEnemy()
+    {
+        Vector2 direction = (nearestEnemy.position - transform.position).normalized;
+        GameObject bullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, Quaternion.identity);
+        Rigidbody2D rbBullet = bullet.GetComponent<Rigidbody2D>();
+        rbBullet.velocity = direction * bulletSpeed;
+    }
 }
