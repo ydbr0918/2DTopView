@@ -12,44 +12,58 @@ public class Enemy : MonoBehaviour
     public int maxHp = 10;
     private int currentHp;
 
-    public Image healthBarFill; 
+    public Image healthBarFill;
 
     private Transform player;
     private Rigidbody2D rb;
     private Vector2 moveDirection;
 
+    [Header("Drop Settings")]
+    public GameObject expPrefab; // 👈 경험치 프리팹
+
     void Start()
     {
         currentHp = maxHp;
-
-        player = GameObject.FindGameObjectWithTag("Player").transform;
+        player = GameObject.FindGameObjectWithTag("Player")?.transform;
         rb = GetComponent<Rigidbody2D>();
+
+        if (healthBarFill != null)
+        {
+            healthBarFill.fillAmount = 1f;
+        }
     }
 
     public void TakeDamage(int amount)
     {
         currentHp -= amount;
 
-        // 체력바 업데이트
         if (healthBarFill != null)
         {
-            healthBarFill.fillAmount = (float)currentHp / maxHp;
+            healthBarFill.fillAmount = Mathf.Clamp01((float)currentHp / maxHp);
         }
 
         if (currentHp <= 0)
         {
-            Destroy(gameObject);
+            Die(); // 👈 죽을 때 함수 호출
         }
     }
 
-    //  총알에 맞았을 때 체력 감소
+    void Die()
+    {
+        if (expPrefab != null)
+        {
+            Instantiate(expPrefab, transform.position, Quaternion.identity); // 👈 경험치 드롭
+        }
+
+        Destroy(gameObject);
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Bullet"))
         {
-            TakeDamage(1); // 총알 1개당 1 데미지
-
-            Destroy(other.gameObject); // 총알 삭제
+            TakeDamage(1);
+            Destroy(other.gameObject);
         }
     }
 
@@ -84,7 +98,6 @@ public class Enemy : MonoBehaviour
         if (moveDirection == Vector2.zero) return;
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, moveDirection, raycastDistance, obstacleLayer);
-
         Vector2 finalDirection = moveDirection;
 
         if (hit.collider != null)

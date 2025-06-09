@@ -61,3 +61,6 @@ TagManager:
   - name: HpBar
     uniqueID: 820065789
     locked: 0
+  - name: Chest
+    uniqueID: 2806984737
+    locked: 0
