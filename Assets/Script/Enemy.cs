@@ -12,7 +12,7 @@ public class Enemy : MonoBehaviour
     public int maxHp = 10;
     private int currentHp;
 
-    public Image healthBarFill; // 체력바 Fill 이미지
+    public Image healthBarFill; 
 
     private Transform player;
     private Rigidbody2D rb;
@@ -42,7 +42,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    // ✅ 총알에 맞았을 때 체력 감소
+    //  총알에 맞았을 때 체력 감소
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Bullet"))
