@@ -64,3 +64,6 @@ TagManager:
   - name: Chest
     uniqueID: 2806984737
     locked: 0
+  - name: Targetcircle
+    uniqueID: 2366649423
+    locked: 0

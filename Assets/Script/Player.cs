@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -52,6 +52,11 @@ public class Player : MonoBehaviour
 
     private Vector2 lastMoveDirection = Vector2.down;
 
+    [SerializeField] GameObject targetCirclePrefab;  // ë¹¨ê°„ ì› í”„ë¦¬íŒ¹
+    private GameObject currentTargetCircle;
+    private Transform previousTarget;
+    
+
 
 
 
@@ -77,12 +82,12 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        // ÀÌµ¿ ÀÔ·Â
+        // ì´ë™ ì…ë ¥
         input.x = Input.GetAxisRaw("Horizontal");
         input.y = Input.GetAxisRaw("Vertical");
         velocity = input.normalized * moveSpeed;
 
-        // ¹æÇâ¿¡ µû¶ó ½ºÇÁ¶óÀÌÆ® ÀüÈ¯
+        // ë°©í–¥ì— ë”°ë¼ ìŠ¤í”„ë¼ì´íŠ¸ ì „í™˜
         if (input.sqrMagnitude > .01f)
         {
             if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
@@ -95,12 +100,32 @@ public class Player : MonoBehaviour
             }
         }
 
-        // °¡Àå °¡±î¿î Àû Ã£±â
+        // ê°€ì¥ ê°€ê¹Œìš´ ì  ì°¾ê¸°
         nearestEnemy = FindNearestEnemy();
 
+        // íƒ€ê²Ÿ ë§ˆì»¤ í‘œì‹œ/ì œê±° ì½”ë“œ ì¶”ê°€
+        Transform newTarget = nearestEnemy;
+        if (newTarget != previousTarget)
+        {
+            // ê¸°ì¡´ ë§ˆì»¤ ì‚­ì œ
+            if (currentTargetCircle != null)
+                Destroy(currentTargetCircle);
+
+            // ìƒˆ íƒ€ê²Ÿì´ ìˆìœ¼ë©´ ë§ˆì»¤ ìƒì„±
+            if (newTarget != null)
+            {
+                currentTargetCircle = Instantiate(targetCirclePrefab, newTarget.position + Vector3.down * 0.4f, Quaternion.identity);
+                currentTargetCircle.transform.SetParent(newTarget); // Enemyì— ë¶™ì„(ì›€ì§ì´ë©´ ë”°ë¼ê°)
+                currentTargetCircle.transform.localPosition = Vector3.down * 0.1f; // Enemy ë°œë°‘ì— í‘œì‹œ (ê°’ì€ ëª¬ìŠ¤í„° ì‚¬ì´ì¦ˆì— ë§ê²Œ ì¡°ì •)
+            }
+
+            previousTarget = newTarget;
+        }
+        // íƒ€ê²Ÿ ë§ˆì»¤ ì½”ë“œ ë
+
         if (input.sqrMagnitude > .01f)
         {
-            lastMoveDirection = input.normalized; // ÃÖ±Ù ÀÌµ¿ ¹æÇâ ÀúÀå
+            lastMoveDirection = input.normalized; // ìµœê·¼ ì´ë™ ë°©í–¥ ì €ì¥
 
             if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
             {
@@ -112,7 +137,7 @@ public class Player : MonoBehaviour
             }
         }
 
-        // Z Å°·Î ÃÑ¾Ë ¹ß»ç
+        // Z í‚¤ë¡œ ì´ì•Œ ë°œì‚¬
         if (Input.GetKeyDown(KeyCode.Z) && !isReloading)
         {
             if (currentAmmo <= 0)
@@ -135,26 +160,24 @@ public class Player : MonoBehaviour
             }
         }
 
-
-
-        // ¼öµ¿ ÀçÀåÀü
+        // ìˆ˜ë™ ì¬ì¥ì „
         if (Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < maxAmmo)
         {
             StartCoroutine(Reload());
         }
-
     }
+
 
 
     private IEnumerator Reload()
     {
         isReloading = true;
-        Debug.Log("ÀçÀåÀü Áß...");
+        Debug.Log("ì¬ì¥ì „ ì¤‘...");
         yield return new WaitForSeconds(1f);
 
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
-        Debug.Log("ÀçÀåÀü ¿Ï·á");
+        Debug.Log("ì¬ì¥ì „ ì™„ë£Œ");
         isReloading = false;
     }
 
@@ -176,7 +199,7 @@ public class Player : MonoBehaviour
         {
             exp -= expToNext;
             level++;
-            expToNext += 5; // ´ÙÀ½ ·¹º§ ¿ä±¸ °æÇèÄ¡ +5
+            expToNext += 5; // ë‹¤ìŒ ë ˆë²¨ ìš”êµ¬ ê²½í—˜ì¹˜ +5
             OnLevelUp();
         }
 
@@ -187,7 +210,7 @@ public class Player : MonoBehaviour
 
     private void OnLevelUp()
     {
-        Debug.Log($"·¹º§¾÷! Lv {level}");
+        Debug.Log($"ë ˆë²¨ì—…! Lv {level}");
 
         maxHp += 10;
         currentHp = maxHp;
@@ -217,7 +240,7 @@ public class Player : MonoBehaviour
 {
     if (collision.CompareTag("Item"))
     {
-        // ItemObject°¡ nullÀÌ ¾Æ´Ò ¶§¸¸ Ã³¸®
+        // ItemObjectê°€ nullì´ ì•„ë‹ ë•Œë§Œ ì²˜ë¦¬
         var itemObj = collision.GetComponent<ItemObject>();
         if (itemObj != null)
         {
@@ -230,7 +253,7 @@ public class Player : MonoBehaviour
 
     if (collision.CompareTag("Ground"))
     {
-        Debug.Log("¸øÁö³ª°¨");
+        Debug.Log("ëª»ì§€ë‚˜ê°");
         velocity = Vector2.zero;
     }
 
@@ -249,7 +272,7 @@ public class Player : MonoBehaviour
 
         if (currentHp <= 0)
         {
-            Debug.Log("ÇÃ·¹ÀÌ¾î »ç¸Á");
+            Debug.Log("í”Œë ˆì´ì–´ ì‚¬ë§");
             
         }
     }
