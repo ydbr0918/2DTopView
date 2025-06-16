@@ -76,6 +76,9 @@ public class Player : MonoBehaviour
         UpdateAmmoUI();
         isReloading = false;
 
+        int weaponIndex = PlayerSelectData.selectedWeaponIndex;
+        int skillIndex = PlayerSelectData.selectedSkillIndex;
+
     }
 
     private bool isReloading = false;
