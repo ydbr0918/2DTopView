@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainLobby.unity
     guid: b642b6cb425108a44a4bcef80a6af64a
   - enabled: 1
+    path: Assets/Scenes/SelectRoom.unity
+    guid: 245f1ebbb3f874d4a8ead44ec28a233a
+  - enabled: 1
     path: Assets/Scenes/TopViewMap_1.unity
     guid: a9f0dd47aa02f6b4f921e69366b2a767
   - enabled: 0
