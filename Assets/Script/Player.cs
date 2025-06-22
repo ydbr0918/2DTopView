@@ -168,6 +168,11 @@ public class Player : MonoBehaviour
         {
             StartCoroutine(Reload());
         }
+
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            SelectionData.Instance.selectedSkill?.Activate(gameObject);
+        }
     }
 
 
