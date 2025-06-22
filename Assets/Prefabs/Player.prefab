@@ -147,6 +147,7 @@ MonoBehaviour:
   fireRate: 0.3
   ammoText: {fileID: 0}
   targetCirclePrefab: {fileID: 376253524904106497, guid: d1c38568c1f32f5469dcb94e6f059c42, type: 3}
+  baseDamage: 10
 --- !u!50 &3481574333095510322
 Rigidbody2D:
   serializedVersion: 4

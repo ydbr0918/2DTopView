@@ -1,48 +1,50 @@
+// WeaponSelector.cs
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement; // 씬 전환에 쓸 경우
 
 public class WeaponSelector : MonoBehaviour
 {
-    public GameObject[] weapons;             // 무기 오브젝트들
-    public WeaponData[] weaponDatas;         // 무기 정보 ScriptableObject들 (Inspector에 연결)
+    [Header("무기 아이콘 (GameObject)")]
+    public List<GameObject> weaponIcons;
+
+    [Header("무기 데이터 (ScriptableObject)")]
+    public List<WeaponData> weaponDataList;
 
     private int currentIndex = 0;
 
-    void Start()
+    private void Start()
     {
-        ShowWeapon(currentIndex);  // 시작 시 첫 무기 표시 + 선택 정보 저장
+        UpdateUI();
     }
 
-    public void ShowNextWeapon()
+    public void OnNextWeapon()
     {
-        currentIndex = (currentIndex + 1) % weapons.Length;
-        ShowWeapon(currentIndex);
+        currentIndex = (currentIndex + 1) % weaponIcons.Count;
+        UpdateUI();
     }
 
-    public void ShowPreviousWeapon()
+    public void OnPrevWeapon()
     {
-        currentIndex--;
-        if (currentIndex < 0)
-            currentIndex = weapons.Length - 1;
-
-        ShowWeapon(currentIndex);
+        currentIndex = (currentIndex - 1 + weaponIcons.Count) % weaponIcons.Count;
+        UpdateUI();
     }
 
-    private void ShowWeapon(int index)
+    private void UpdateUI()
     {
-        // 1. 무기 오브젝트 보여주기
-        for (int i = 0; i < weapons.Length; i++)
-        {
-            weapons[i].SetActive(i == index);
-        }
+        for (int i = 0; i < weaponIcons.Count; i++)
+            weaponIcons[i].SetActive(i == currentIndex);
+    }
 
-        // 2. 무기 정보 저장하기
-        if (weaponDatas != null && weaponDatas.Length > index)
-        {
-            SelectionData.Instance.selectedWeapon = weaponDatas[index];
-        }
-        else
-        {
-            Debug.LogWarning("WeaponData가 연결되어 있지 않거나 인덱스 범위가 잘못되었습니다.");
-        }
+    /// <summary>
+    /// “게임 시작” 버튼 등에 연결
+    /// </summary>
+    public void ConfirmSelection()
+    {
+        // 선택 저장
+        SelectionData.Instance.SetSelectedWeapon(currentIndex, weaponDataList[currentIndex]);
+
+        // 다음 씬 로드 (예시)
+        // SceneManager.LoadScene("GameScene");
     }
 }

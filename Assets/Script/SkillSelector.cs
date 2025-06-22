@@ -1,48 +1,48 @@
+// SkillSelector.cs
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SkillSelector : MonoBehaviour
 {
-    public GameObject[] skills;             // 스킬 오브젝트들
-    public SkillData[] skillDatas;          // 스킬 정보 ScriptableObject 배열 (Inspector에서 연결)
+    [Header("스킬 아이콘 (GameObject)")]
+    public List<GameObject> skillIcons;
+
+    [Header("스킬 데이터 (ScriptableObject)")]
+    public List<SkillData> skillDataList;
 
     private int currentIndex = 0;
 
-    void Start()
+    private void Start()
     {
-        ShowSkill(currentIndex);            // 시작 시 첫 스킬 표시 + 선택 정보 저장
+        UpdateUI();
     }
 
-    public void ShowNextSkill()
+    public void OnNextSkill()
     {
-        currentIndex = (currentIndex + 1) % skills.Length;
-        ShowSkill(currentIndex);
+        currentIndex = (currentIndex + 1) % skillIcons.Count;
+        UpdateUI();
     }
 
-    public void ShowPreviousSkill()
+    public void OnPrevSkill()
     {
-        currentIndex--;
-        if (currentIndex < 0)
-            currentIndex = skills.Length - 1;
-
-        ShowSkill(currentIndex);
+        currentIndex = (currentIndex - 1 + skillIcons.Count) % skillIcons.Count;
+        UpdateUI();
     }
 
-    private void ShowSkill(int index)
+    private void UpdateUI()
     {
-        // 1. 스킬 UI 표시
-        for (int i = 0; i < skills.Length; i++)
-        {
-            skills[i].SetActive(i == index);
-        }
+        for (int i = 0; i < skillIcons.Count; i++)
+            skillIcons[i].SetActive(i == currentIndex);
+    }
 
-        // 2. 선택한 스킬 데이터 저장
-        if (skillDatas != null && skillDatas.Length > index)
-        {
-            SelectionData.Instance.selectedSkill = skillDatas[index];
-        }
-        else
-        {
-            Debug.LogWarning("SkillData가 연결되어 있지 않거나 인덱스 범위를 벗어났습니다.");
-        }
+    /// <summary>
+    /// “게임 시작” 버튼 등에 연결
+    /// </summary>
+    public void ConfirmSelection()
+    {
+        // 선택 저장
+        SelectionData.Instance.SetSelectedSkill(currentIndex, skillDataList[currentIndex]);
+
+        // (씬 전환은 WeaponSelector 쪽과 동일하게 하셔도 되고)
     }
 }

@@ -19,7 +19,7 @@ public class Enemy : MonoBehaviour
     private Vector2 moveDirection;
 
     [Header("Drop Settings")]
-    public GameObject expPrefab; // 👈 경험치 프리팹
+    public GameObject expPrefab; 
 
     void Start()
     {
@@ -44,7 +44,7 @@ public class Enemy : MonoBehaviour
 
         if (currentHp <= 0)
         {
-            Die(); // 👈 죽을 때 함수 호출
+            Die(); 
         }
     }
 
@@ -52,7 +52,7 @@ public class Enemy : MonoBehaviour
     {
         if (expPrefab != null)
         {
-            Instantiate(expPrefab, transform.position, Quaternion.identity); // 👈 경험치 드롭
+            Instantiate(expPrefab, transform.position, Quaternion.identity);
         }
 
         Destroy(gameObject);
@@ -90,6 +90,12 @@ public class Enemy : MonoBehaviour
             Vector3 scale = transform.localScale;
             scale.x = moveDirection.x < 0 ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
             transform.localScale = scale;
+        }
+
+        if (healthBarFill != null)
+        {
+           
+            healthBarFill.rectTransform.localScale = new Vector3(1, 1, 1);
         }
     }
 

@@ -4,14 +4,31 @@ public class GameManager : MonoBehaviour
 {
     void Start()
     {
-        WeaponData weapon = SelectionData.Instance.selectedWeapon;
-        SkillData skill = SelectionData.Instance.selectedSkill;
+        // 소문자가 아니라 대문자 프로퍼티로!
+        WeaponData weapon = SelectionData.Instance.SelectedWeapon;
+        SkillData skill = SelectionData.Instance.SelectedSkill;
 
-        Debug.Log("선택된 무기: " + weapon.weaponName + ", 데미지: " + weapon.damage);
-        Debug.Log("선택된 스킬: " + skill.skillName + ", 설명: " + skill.description);
+        if (weapon != null)
+        {
+            Debug.Log($"선택된 무기: {weapon.weaponName}, 발사 속도: {weapon.fireRate}, 탄발수: {weapon.bulletPerShot}");
+        }
+        else
+        {
+            Debug.LogWarning("무기가 선택되지 않았습니다!");
+        }
 
-        // 여기에서 실제 무기 오브젝트나 스킬 시스템에 적용
-        // 예: player.EquipWeapon(weapon);
-        //     skillSystem.Apply(skill);
+        if (skill != null)
+        {
+            Debug.Log($"선택된 스킬: {skill.skillName}, 설명: {skill.description}");
+        }
+        else
+        {
+            Debug.LogWarning("스킬이 선택되지 않았습니다!");
+        }
+
+        // 예: 플레이어에게 적용
+        // var player = FindObjectOfType<Player>();
+        // if (player != null && weapon != null) player.EquipWeapon(weapon);
+        // if (player != null && skill  != null) skill.Activate(player.gameObject);
     }
 }

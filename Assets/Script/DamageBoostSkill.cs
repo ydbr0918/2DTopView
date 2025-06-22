@@ -7,10 +7,10 @@ public class DamageBoostSkill : SkillData
 
     public override void Activate(GameObject user)
     {
-        Weapon weapon = user.GetComponentInChildren<Weapon>();
-        if (weapon != null)
+        Player player = user.GetComponent<Player>();  
+        if (player != null)
         {
-            weapon.IncreaseDamage(bonusDamage);
+            player.IncreaseDamage((int)bonusDamage);
             Debug.Log("무기 데미지 증가됨 + " + bonusDamage);
         }
     }
