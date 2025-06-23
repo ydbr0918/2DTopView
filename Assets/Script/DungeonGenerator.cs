@@ -1,4 +1,3 @@
-// DungeonGenerator.cs
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -16,8 +15,10 @@ public class DungeonGenerator : MonoBehaviour
     [Header("미니맵 컨트롤러 (Optional)")]
     public MiniMapController miniMapController;
 
+    // 실제 방 좌표 & 스크립트 참조 보관
     private List<Vector2Int> roomPositions = new List<Vector2Int>();
     private Dictionary<Vector2Int, Room> rooms = new Dictionary<Vector2Int, Room>();
+
     private bool threeNeighborRoomExists = false;
 
     void Start()
@@ -27,29 +28,30 @@ public class DungeonGenerator : MonoBehaviour
 
     void GenerateDungeon()
     {
-        // 1) 중앙 방
+        // 1) 중앙 방 생성
         Vector2Int center = Vector2Int.zero;
         roomPositions.Add(center);
         Room firstRoom = Instantiate(roomPrefab, Vector3.zero, Quaternion.identity)
                          .GetComponent<Room>();
         firstRoom.myRoomPos = center;
+        firstRoom.isStartRoom = true;
         rooms.Add(center, firstRoom);
 
-        // 2) 나머지 방
+        // 2) 나머지 방 생성
         int count = 1;
-        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
         while (count < roomCount)
         {
-            // 후보 방 필터
             var candidates = roomPositions
-                .Where(p => GetNeighborCount(p) < 2 ||
-                             (!threeNeighborRoomExists && GetNeighborCount(p) < 3))
-                .ToList();
+              .Where(p =>
+                  GetNeighborCount(p) < 2 ||
+                  (!threeNeighborRoomExists && GetNeighborCount(p) < 3)
+              ).ToList();
             if (candidates.Count == 0) break;
 
             var basePos = candidates[Random.Range(0, candidates.Count)];
-            var dir = dirs[Random.Range(0, dirs.Length)];
+            var dir = directions[Random.Range(0, directions.Length)];
             var newPos = basePos + dir;
             if (roomPositions.Contains(newPos)) continue;
 
@@ -63,9 +65,7 @@ public class DungeonGenerator : MonoBehaviour
             }
 
             roomPositions.Add(newPos);
-            Vector3 spawnPos = new Vector3(newPos.x * roomSpacing,
-                                           newPos.y * roomSpacing,
-                                           0f);
+            Vector3 spawnPos = new Vector3(newPos.x * roomSpacing, newPos.y * roomSpacing, 0f);
             Room newRoom = Instantiate(roomPrefab, spawnPos, Quaternion.identity)
                            .GetComponent<Room>();
             newRoom.myRoomPos = newPos;
@@ -74,78 +74,65 @@ public class DungeonGenerator : MonoBehaviour
             count++;
         }
 
-        // 3) 문 자동 활성화
+        // 3) 문 자동 활성화 → **중복 Instantiate 절대 금지**
         foreach (var pos in roomPositions)
         {
-            var roomGO = rooms[pos].gameObject;
+            GameObject roomGO = rooms[pos].gameObject;
             TrySetDoor(roomGO, pos, Vector2Int.up, "Up Door", new Vector3(0, -2, 0));
             TrySetDoor(roomGO, pos, Vector2Int.down, "Down Door", new Vector3(0, 2, 0));
             TrySetDoor(roomGO, pos, Vector2Int.left, "Left Door", new Vector3(2, 0, 0));
             TrySetDoor(roomGO, pos, Vector2Int.right, "Right Door", new Vector3(-2, 0, 0));
         }
 
-        // 4) 플레이어 스폰 (첫 방)
-        Vector2Int start = roomPositions[0];
-        Vector3 wp = new Vector3(start.x * roomSpacing,
-                                 start.y * roomSpacing,
-                                 0f);
-        Instantiate(playerPrefab, wp, Quaternion.identity);
+        // 4) 플레이어 스폰 (중앙 방)
+        Vector3 playerPos = new Vector3(center.x * roomSpacing, center.y * roomSpacing, 0f);
+        Instantiate(playerPrefab, playerPos, Quaternion.identity);
 
         // 5) 미니맵 세팅 (Optional)
-        miniMapController?.SetupMiniMap(roomPositions, start);
+        miniMapController?.SetupMiniMap(roomPositions, center);
     }
 
-    // private: 방 생성 시만 쓰입니다
+    // 방 오브젝트 하나에 대해, 지정한 방향에 이웃이 있을 때만 문을 켜 주는 헬퍼
     void TrySetDoor(GameObject roomGO, Vector2Int myPos,
-                    Vector2Int dir, string doorName, Vector3 offset)
+                   Vector2Int dir, string doorName, Vector3 entryOffset)
     {
-        var target = myPos + dir;
-        var doorTr = roomGO.transform.Find(doorName);
+        Vector2Int targetPos = myPos + dir;
+        Transform doorTr = roomGO.transform.Find(doorName);
         if (doorTr == null) return;
 
-        bool has = roomPositions.Contains(target);
-        doorTr.gameObject.SetActive(has);
-        if (has)
+        bool hasNeighbor = roomPositions.Contains(targetPos);
+        doorTr.gameObject.SetActive(hasNeighbor);
+        if (hasNeighbor)
         {
             var portal = doorTr.GetComponent<DoorPortal>();
-            if (portal != null)
-            {
-                portal.myRoomPos = myPos;
-                portal.targetRoomPos = target;
-                portal.entryOffset = offset;
-            }
+            portal.myRoomPos = myPos;
+            portal.targetRoomPos = targetPos;
+            portal.entryOffset = entryOffset;
         }
     }
 
-    // public: Room 스크립트에서 몬스터 전멸 후 호출
+    int GetNeighborCount(Vector2Int p)
+    {
+        return new[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right }
+            .Count(d => roomPositions.Contains(p + d));
+    }
+
+    // Room.cs 및 DoorPortal.cs 에서 쓰는 메서드들
+    public Vector3 GetRoomWorldPos(Vector2Int p)
+        => new Vector3(p.x * roomSpacing, p.y * roomSpacing, 0f);
+
+    public Room GetRoomScript(Vector2Int p)
+    {
+        rooms.TryGetValue(p, out var r);
+        return r;
+    }
+
+    // 방 클리어 후 문을 다시 켜 주고 싶을 때
     public void ActivateDoors(GameObject roomGO, Vector2Int roomPos)
     {
         TrySetDoor(roomGO, roomPos, Vector2Int.up, "Up Door", new Vector3(0, -2, 0));
         TrySetDoor(roomGO, roomPos, Vector2Int.down, "Down Door", new Vector3(0, 2, 0));
         TrySetDoor(roomGO, roomPos, Vector2Int.left, "Left Door", new Vector3(2, 0, 0));
         TrySetDoor(roomGO, roomPos, Vector2Int.right, "Right Door", new Vector3(-2, 0, 0));
-    }
-
-    int GetNeighborCount(Vector2Int p)
-    {
-        Vector2Int[] ds = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-        int c = 0;
-        foreach (var d in ds)
-            if (roomPositions.Contains(p + d)) c++;
-        return c;
-    }
-
-    // Room.cs 및 DoorPortal.cs 에서 씁니다
-    public Vector3 GetRoomWorldPos(Vector2Int p)
-    {
-        return new Vector3(p.x * roomSpacing,
-                           p.y * roomSpacing,
-                           0f);
-    }
-
-    public Room GetRoomScript(Vector2Int p)
-    {
-        rooms.TryGetValue(p, out var r);
-        return r;
     }
 }

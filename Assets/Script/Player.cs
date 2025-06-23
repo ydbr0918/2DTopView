@@ -72,12 +72,12 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        // 1) Health/Exp/UI 초기화
+        // ----- 1) Health / Exp 초기화 -----
         currentHp = maxHp;
         UpdateHealthUI();
         UpdateExpUI();
 
-        // 2) Weapon 세팅
+        // ----- 2) Weapon 세팅 (무기 데이터 → maxAmmo/currentAmmo 세팅) -----
         currentWeapon = SelectionData.Instance.SelectedWeapon;
         if (currentWeapon != null)
         {
@@ -87,46 +87,56 @@ public class Player : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[Player] SelectedWeapon 없음, 기본 세팅 유지");
+            // 무기 미선택 시 경고
+            Debug.LogWarning("[Player] SelectedWeapon 없음, 기본 무기 사용");
             currentAmmo = maxAmmo;
         }
 
-        // 3) Skill 적용
+        // ----- 3) Skill 적용 (무기 세팅 뒤에) -----
         var skill = SelectionData.Instance.SelectedSkill;
-        if (skill != null) skill.Activate(gameObject);
-        else Debug.LogWarning("[Player] SelectedSkill 없음");
+        if (skill != null)
+        {
+            skill.Activate(gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("[Player] SelectedSkill 없음");
+        }
 
-        // 스킬이 maxAmmo 늘렸다면 동기화
+        // 스킬이 maxAmmo를 늘려주었으면 currentAmmo 동기화
         currentAmmo = maxAmmo;
 
-        // 4) 초기 쿨타임 및 UI
+        // ----- 4) 초기 쿨다운 및 UI -----
         lastShotTime = Time.time - fireRate;
         UpdateAmmoUI();
     }
 
     private void Update()
     {
-        // 이동 입력 & 스프라이트 방향
+        // 이동 입력 & 스프라이트
         input.x = Input.GetAxisRaw("Horizontal");
         input.y = Input.GetAxisRaw("Vertical");
         velocity = input.normalized * moveSpeed;
+
         if (input.sqrMagnitude > 0.01f)
         {
             if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
                 sR.sprite = input.x > 0 ? spriteRight : spriteLeft;
             else
                 sR.sprite = input.y > 0 ? spriteUp : spriteDown;
+
             lastMoveDirection = input.normalized;
         }
 
-        // 타겟 마커 갱신
+        // 타겟 마커
         nearestEnemy = FindNearestEnemy();
         HandleTargetMarker();
 
         // 발사
-        if (Input.GetKeyDown(KeyCode.Z) && !isReloading) TryShoot();
+        if (Input.GetKeyDown(KeyCode.Z) && !isReloading)
+            TryShoot();
 
-        // 재장전
+        // 수동 재장전
         if (Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < maxAmmo)
             StartCoroutine(Reload());
 
@@ -144,7 +154,9 @@ public class Player : MonoBehaviour
     {
         if (nearestEnemy != previousTarget)
         {
-            if (currentTargetCircle != null) Destroy(currentTargetCircle);
+            if (currentTargetCircle != null)
+                Destroy(currentTargetCircle);
+
             if (nearestEnemy != null)
             {
                 currentTargetCircle = Instantiate(
@@ -155,6 +167,7 @@ public class Player : MonoBehaviour
                 );
                 currentTargetCircle.transform.localPosition = Vector3.down * 0.1f;
             }
+
             previousTarget = nearestEnemy;
         }
     }
@@ -180,7 +193,7 @@ public class Player : MonoBehaviour
     IEnumerator Reload()
     {
         isReloading = true;
-        yield return new WaitForSeconds(currentWeapon != null ? currentWeapon.reloadTime : 1f);
+        yield return new WaitForSeconds(1f);
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
         isReloading = false;
@@ -196,18 +209,19 @@ public class Player : MonoBehaviour
         float spread = currentWeapon?.spreadAngle ?? 0f;
         float range = currentWeapon?.range ?? 10f;
         float speed = currentWeapon?.bulletSpeed ?? 5f;
-        int weaponDmg = currentWeapon?.baseDamage ?? 0;
+        int weaponDmg = currentWeapon?.damage ?? 0;
 
         for (int i = 0; i < shotCount; i++)
         {
-            float angle = Random.Range(-spread * 0.5f, spread * 0.5f);
+            float angle = Random.Range(-spread / 2f, spread / 2f);
             Vector2 dir = Quaternion.Euler(0, 0, angle) * shootDir;
-
             var b = Instantiate(bulletPrefab, bulletSpawnPoint.position, Quaternion.identity);
             var bullet = b.GetComponent<Bullet>();
             bullet.SetDirection(dir);
             bullet.speed = speed;
             bullet.maxTravelDistance = range;
+
+            
             bullet.damage = baseDamage + weaponDmg;
         }
     }
@@ -220,37 +234,27 @@ public class Player : MonoBehaviour
         foreach (var e in enemies)
         {
             float d = Vector2.Distance(transform.position, e.transform.position);
-            if (d < minD)
-            {
-                minD = d;
-                closest = e.transform;
-            }
+            if (d < minD) { minD = d; closest = e.transform; }
         }
         return closest;
     }
 
     private void OnTriggerEnter2D(Collider2D col)
     {
-        // ─── EXP 픽업
-        if (col.CompareTag("Exp"))
+        if (col.CompareTag("Item"))
         {
-            var expItem = col.GetComponent<ItemObject>();
-            if (expItem != null)
+            var item = col.GetComponent<ItemObject>();
+            if (item != null)
             {
-                int gain = expItem.GetPoint();    // 이 값이 5여야 정상
-                Debug.Log($"[Player] EXP Picked: +{gain}");
-                AddExp(gain);
+                score += item.GetPoint();
+                scoreText?.SetText(score.ToString());
             }
             Destroy(col.gameObject);
-            return;
         }
-
-        // ─── 적 충돌
-        if (col.CompareTag("Enemy"))
+        else if (col.CompareTag("Enemy"))
         {
             TakeDamage(10);
         }
-        // ─── 벽(Wall) 태그를 Ground로 사용 중이라면
         else if (col.CompareTag("Ground"))
         {
             velocity = Vector2.zero;
@@ -299,27 +303,28 @@ public class Player : MonoBehaviour
         ammoText?.SetText($"{currentAmmo} / {maxAmmo}");
     }
 
-    /// <summary>HealSkill에서 호출</summary>
+    /// <summary>HealSkill 에서 호출</summary>
     public void Heal(int amount)
     {
         currentHp = Mathf.Clamp(currentHp + amount, 0, maxHp);
         UpdateHealthUI();
-        Debug.Log($"[Player] Heal +{amount}");
+        Debug.Log($"[Player] Heal → +{amount} (now {currentHp}/{maxHp})");
     }
 
-    /// <summary>AmmoBoostSkill에서 호출</summary>
+    /// <summary>AmmoBoostSkill 에서 호출</summary>
     public void IncreaseMaxAmmo(int amount)
     {
         maxAmmo += amount;
         currentAmmo += amount;
         UpdateAmmoUI();
-        Debug.Log($"[Player] IncreaseMaxAmmo +{amount}");
+        Debug.Log($"[Player] IncreaseMaxAmmo → +{amount}");
     }
 
-    /// <summary>DamageBoostSkill에서 호출</summary>
+    /// <summary>DamageBoostSkill 에서 호출</summary>
     public void IncreaseDamage(int amount)
     {
         baseDamage += amount;
-        Debug.Log($"[Player] IncreaseDamage +{amount}");
+        Debug.Log($"[Player] IncreaseDamage → +{amount} (now {baseDamage})");
     }
 }
+
