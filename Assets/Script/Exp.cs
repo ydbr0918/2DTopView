@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Exp : MonoBehaviour
 {
-    [SerializeField] private int expAmount = 10;
+    [SerializeField] private int expAmount = 5;
 
     private void OnTriggerEnter2D(Collider2D other)
     {

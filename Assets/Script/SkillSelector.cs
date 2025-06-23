@@ -1,13 +1,12 @@
-// SkillSelector.cs
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SkillSelector : MonoBehaviour
 {
-    [Header("스킬 아이콘 (GameObject)")]
+    [Header("아이콘들 (UI GameObject)")]
     public List<GameObject> skillIcons;
 
-    [Header("스킬 데이터 (ScriptableObject)")]
+    [Header("스크립터블 오브젝트 리스트")]
     public List<SkillData> skillDataList;
 
     private int currentIndex = 0;
@@ -36,13 +35,15 @@ public class SkillSelector : MonoBehaviour
     }
 
     /// <summary>
-    /// “게임 시작” 버튼 등에 연결
+    /// “게임 시작” 버튼의 OnClick 에 이 메서드를 연결하세요.
     /// </summary>
-    public void ConfirmSelection()
+    public void ConfirmSkill()
     {
-        // 선택 저장
-        SelectionData.Instance.SetSelectedSkill(currentIndex, skillDataList[currentIndex]);
+        SkillData data = skillDataList[currentIndex];
+        SelectionData.Instance.SetSelectedSkill(currentIndex, data);
+        Debug.Log($"[SkillSelector] 선택된 스킬: {data.skillName} (인덱스 {currentIndex})");
 
-        // (씬 전환은 WeaponSelector 쪽과 동일하게 하셔도 되고)
+        // (필요하다면 여기서 씬 전환도 호출)
+        // e.g. SceneManager.LoadScene("GameScene");
     }
 }

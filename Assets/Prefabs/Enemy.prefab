@@ -54,7 +54,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   raycastDistance: 0.4
-  maxHp: 10
+  maxHp: 100
   healthBarFill: {fileID: 6057194800270216597}
   expPrefab: {fileID: 1854353248569671405, guid: 9f64f072579c8084fb6fb3096c50ffc1, type: 3}
 --- !u!212 &1611150235850550453

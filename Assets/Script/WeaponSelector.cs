@@ -1,14 +1,12 @@
-// WeaponSelector.cs
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement; // 씬 전환에 쓸 경우
 
 public class WeaponSelector : MonoBehaviour
 {
-    [Header("무기 아이콘 (GameObject)")]
+    [Header("아이콘들 (UI GameObject)")]
     public List<GameObject> weaponIcons;
 
-    [Header("무기 데이터 (ScriptableObject)")]
+    [Header("스크립터블 오브젝트 리스트")]
     public List<WeaponData> weaponDataList;
 
     private int currentIndex = 0;
@@ -32,19 +30,21 @@ public class WeaponSelector : MonoBehaviour
 
     private void UpdateUI()
     {
+        // 전부 껐다가 현재 것만 켜기
         for (int i = 0; i < weaponIcons.Count; i++)
             weaponIcons[i].SetActive(i == currentIndex);
     }
 
     /// <summary>
-    /// “게임 시작” 버튼 등에 연결
+    /// “게임 시작” 버튼의 OnClick 에 연결할 메서드
     /// </summary>
-    public void ConfirmSelection()
+    public void ConfirmWeapon()
     {
-        // 선택 저장
-        SelectionData.Instance.SetSelectedWeapon(currentIndex, weaponDataList[currentIndex]);
+        // 현재 인덱스에 대응하는 WeaponData 를 SelectionData 에 저장
+        WeaponData data = weaponDataList[currentIndex];
+        SelectionData.Instance.SetSelectedWeapon(currentIndex, data);
 
-        // 다음 씬 로드 (예시)
-        // SceneManager.LoadScene("GameScene");
+        // (필요하다면 여기서 씬 전환 호출)
+        // e.g. SceneManager.LoadScene("GameScene");
     }
 }

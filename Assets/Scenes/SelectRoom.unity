@@ -206,7 +206,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 438382656}
         m_TargetAssemblyTypeName: SkillSelector, Assembly-CSharp
-        m_MethodName: ShowPreviousSkill
+        m_MethodName: OnPrevSkill
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -390,11 +390,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4ddf92d7b7711842bdb7066d6fc8f10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skills:
+  skillIcons:
   - {fileID: 1606635485}
   - {fileID: 1872126695}
   - {fileID: 609562687}
-  skillDatas:
+  skillDataList:
   - {fileID: 11400000, guid: 7e0a510cbc925984e8b059cf5bd4d859, type: 2}
   - {fileID: 11400000, guid: 828959dd9c411724e8041f39cfaa0046, type: 2}
   - {fileID: 11400000, guid: f909674e27998e0468947cdf9eea94a8, type: 2}
@@ -448,6 +448,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HelpPanel: {fileID: 0}
+  weaponSelector: {fileID: 1809044732}
+  skillSelector: {fileID: 438382656}
 --- !u!1 &609562687 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4543757738865040273, guid: 346341cfa556fda4fb8370e8ea18ac03, type: 3}
@@ -537,7 +539,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1809044732}
         m_TargetAssemblyTypeName: WeaponSelector, Assembly-CSharp
-        m_MethodName: ShowNextWeapon
+        m_MethodName: OnNextWeapon
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -876,7 +878,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 438382656}
         m_TargetAssemblyTypeName: SkillSelector, Assembly-CSharp
-        m_MethodName: ShowNextSkill
+        m_MethodName: OnNextSkill
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1316,7 +1318,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1809044732}
         m_TargetAssemblyTypeName: WeaponSelector, Assembly-CSharp
-        m_MethodName: ShowPreviousWeapon
+        m_MethodName: OnPrevWeapon
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1801,14 +1803,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 804f0575e8d77294788c3f320869dc00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weapons:
+  weaponIcons:
   - {fileID: 1602993834}
   - {fileID: 576010994}
   - {fileID: 6360720975478434983}
-  weaponDatas:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  weaponDataList:
+  - {fileID: 11400000, guid: c65a708ae9becd9498e3f24d1c996db0, type: 2}
+  - {fileID: 11400000, guid: 6a23e9ec4a0f1ba4c9a49c9b6f45838d, type: 2}
+  - {fileID: 11400000, guid: e714f2d99bb268840835cd9f479a5aad, type: 2}
 --- !u!4 &1809044733
 Transform:
   m_ObjectHideFlags: 0
@@ -1889,8 +1891,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03fcd6868e2e83f46a5ca4ea0f53cac4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectedWeapon: {fileID: 0}
-  selectedSkill: {fileID: 0}
 --- !u!4 &1973881859
 Transform:
   m_ObjectHideFlags: 0
