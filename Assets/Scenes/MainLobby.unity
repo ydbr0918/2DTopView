@@ -447,7 +447,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "W,A,S,D or \uBC29\uD5A5\uD0A4\uB85C \uC774\uB3D9\nZ\uB97C \uB20C\uB7EC
-    \uCD1D\uC54C\uBC1C\uC0AC\n"
+    \uCD1D\uC54C\uBC1C\uC0AC\nX\uB97C \uB20C\uB7EC \uC2A4\uD0AC \uC0AC\uC6A9"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 138c978ca57942647bdd632d90014418, type: 2}
   m_sharedMaterial: {fileID: -5543239157439433947, guid: 138c978ca57942647bdd632d90014418, type: 2}
@@ -2000,6 +2000,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HelpPanel: {fileID: 1312213101}
+  weaponSelector: {fileID: 0}
+  skillSelector: {fileID: 0}
 --- !u!4 &1512640950
 Transform:
   m_ObjectHideFlags: 0
@@ -2240,6 +2242,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HelpPanel: {fileID: 0}
+  weaponSelector: {fileID: 0}
+  skillSelector: {fileID: 0}
 --- !u!4 &1965675354
 Transform:
   m_ObjectHideFlags: 0

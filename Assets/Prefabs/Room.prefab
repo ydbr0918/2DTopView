@@ -475,15 +475,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dae1df9a9dd84240b085cb20fa20ac0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myRoomPos: {x: 0, y: 0}
+  isStartRoom: 1
   doorUp: {fileID: 6918019692569263058}
   doorDown: {fileID: 412361741856072913}
   doorLeft: {fileID: 3911720735235214165}
   doorRight: {fileID: 6694205204559600351}
   monsterPrefab: {fileID: 1763495351816764858, guid: 191c0510c7610fc4db7ca3ac35e37ecc, type: 3}
-  spawnAreaWidth: 12
-  spawnAreaHeight: 12
   monsterCount: 3
-  isStartRoom: 0
+  spawnAreaWidth: 11
+  spawnAreaHeight: 11
 --- !u!1 &4758336449937782327
 GameObject:
   m_ObjectHideFlags: 0

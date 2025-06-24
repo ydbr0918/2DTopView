@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class DoorPortal : MonoBehaviour
 {
-    public Vector2Int myRoomPos;       // 이 문이 속한 방 좌표
-    public Vector2Int targetRoomPos;   // 이동할 방 좌표
-    public Vector3 entryOffset;        // 타겟 방 입장 위치 오프셋
+    [HideInInspector] public Vector2Int myRoomPos;
+    [HideInInspector] public Vector2Int targetRoomPos;
+    [HideInInspector] public Vector3 entryOffset;
 
     private DungeonGenerator dungeon;
     private MiniMapController miniMapController;
@@ -20,24 +20,21 @@ public class DoorPortal : MonoBehaviour
         if (!other.CompareTag("Player") || dungeon == null) return;
 
         // 1) 플레이어 텔레포트
-        Vector3 tp = dungeon.GetRoomWorldPos(targetRoomPos) + entryOffset;
-        other.transform.position = tp;
+        Vector3 wp = dungeon.GetRoomWorldPos(targetRoomPos) + entryOffset;
+        other.transform.position = wp;
 
-        // 2) 미니맵 업데이트
+        // 2) 미니맵 업데이트 (Optional)
         miniMapController?.UpdatePlayerIcon(targetRoomPos);
 
-        // 3) 새 방 진입 로직 호출
+        // 3) 새 방 로직
         Room targetRoom = dungeon.GetRoomScript(targetRoomPos);
         targetRoom?.OnPlayerEnter();
 
-        // 4) 이 문(=origin room 쪽 문)은, 
-        //    아직 클리어되지 않은 방(=myRoomPos)에 속해 있으면 꺼주고,
-        //    이미 클리어된 방이면 켜둡니다.
+        // 4) 이 문(origin) 처리
         Room originRoom = dungeon.GetRoomScript(myRoomPos);
-        if (originRoom != null && !originRoom.IsCleared)
-        {
+        // 시작 방(isStartRoom)은 닫지 않고,
+        // 아직 클리어되지 않은 방(origin)이면 문을 닫습니다.
+        if (originRoom != null && !originRoom.isStartRoom && !originRoom.cleared)
             gameObject.SetActive(false);
-        }
-        // else: 이미 클리어된 방이니 문을 열어둡니다(켜둡니다).
     }
 }

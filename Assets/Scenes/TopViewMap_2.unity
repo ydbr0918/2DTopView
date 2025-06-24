@@ -1561,8 +1561,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\uC774\uB3D9"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 138c978ca57942647bdd632d90014418, type: 2}
-  m_sharedMaterial: {fileID: -5543239157439433947, guid: 138c978ca57942647bdd632d90014418, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: c2270691c92cb36458c6ebacc2bff15c, type: 2}
+  m_sharedMaterial: {fileID: -6983140860158277258, guid: c2270691c92cb36458c6ebacc2bff15c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
