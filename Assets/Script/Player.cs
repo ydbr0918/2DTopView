@@ -333,12 +333,20 @@ public class Player : MonoBehaviour
 
 
 
-    IEnumerator ShowLevelUp()
+    private void ShowLevelUpText()
     {
-        levelUpText?.gameObject.SetActive(true);
-        yield return new WaitForSeconds(1f);
-        levelUpText?.gameObject.SetActive(false);
+        if (levelUpCoroutine != null)
+            StopCoroutine(levelUpCoroutine);
+        levelUpCoroutine = StartCoroutine(LevelUpCoroutine());
     }
+
+    private IEnumerator LevelUpCoroutine()
+    {
+        levelUpText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        levelUpText.gameObject.SetActive(false);
+    }
+
 
     void UpdateHealthUI()
     {

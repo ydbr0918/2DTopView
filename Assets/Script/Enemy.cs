@@ -1,17 +1,22 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class Enemy : MonoBehaviour
 {
+    // ─── 1) SpriteRenderer 캐싱 필드 추가 ───
+    private SpriteRenderer sR;
+
+    [Header("Movement")]
     public float moveSpeed = 2f;
     public float chaseRange = 5f;
     public LayerMask obstacleLayer;
     public float raycastDistance = 0.3f;
 
+    [Header("Health")]
     public int maxHp = 10;
     private int currentHp;
-
     public Image healthBarFill;
 
     private Transform player;
@@ -19,7 +24,13 @@ public class Enemy : MonoBehaviour
     private Vector2 moveDirection;
 
     [Header("Drop Settings")]
-    public GameObject expPrefab; 
+    public GameObject expPrefab;
+
+    void Awake()
+    {
+        // ─── 2) Awake 에서 SpriteRenderer 가져오기 ───
+        sR = GetComponent<SpriteRenderer>();
+    }
 
     void Start()
     {
@@ -28,33 +39,21 @@ public class Enemy : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
 
         if (healthBarFill != null)
-        {
             healthBarFill.fillAmount = 1f;
-        }
     }
 
     public void TakeDamage(int amount)
     {
         currentHp -= amount;
-
         if (healthBarFill != null)
-        {
             healthBarFill.fillAmount = Mathf.Clamp01((float)currentHp / maxHp);
-        }
-
-        if (currentHp <= 0)
-        {
-            Die(); 
-        }
+        if (currentHp <= 0) Die();
     }
 
     void Die()
     {
         if (expPrefab != null)
-        {
             Instantiate(expPrefab, transform.position, Quaternion.identity);
-        }
-
         Destroy(gameObject);
     }
 
@@ -71,8 +70,10 @@ public class Enemy : MonoBehaviour
     {
         if (player == null) return;
 
+        // 플레이어와 거리 계산
         Vector2 distance = player.position - transform.position;
 
+        // 추적 범위 내면 단순 축 우선 이동 방향 결정
         if (distance.magnitude <= chaseRange)
         {
             if (Mathf.Abs(distance.x) > Mathf.Abs(distance.y))
@@ -85,17 +86,12 @@ public class Enemy : MonoBehaviour
             moveDirection = Vector2.zero;
         }
 
+        // ─── 3) 좌우 이동 시 스프라이트 반전 ───
         if (moveDirection.x != 0)
         {
-            Vector3 scale = transform.localScale;
-            scale.x = moveDirection.x < 0 ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
-            transform.localScale = scale;
-        }
-
-        if (healthBarFill != null)
-        {
-           
-            healthBarFill.rectTransform.localScale = new Vector3(1, 1, 1);
+            // moveDirection.x > 0 이면 오른쪽으로 움직이는 중 → flipX = false
+            // moveDirection.x < 0 이면 왼쪽으로 움직이는 중 → flipX = true
+            sR.flipX = moveDirection.x < 0;
         }
     }
 
@@ -103,13 +99,11 @@ public class Enemy : MonoBehaviour
     {
         if (moveDirection == Vector2.zero) return;
 
+        // 벽 회피용 레이캐스트
         RaycastHit2D hit = Physics2D.Raycast(transform.position, moveDirection, raycastDistance, obstacleLayer);
-        Vector2 finalDirection = moveDirection;
-
-        if (hit.collider != null)
-        {
-            finalDirection = Quaternion.Euler(0, 0, -90f) * moveDirection;
-        }
+        Vector2 finalDirection = hit.collider != null
+            ? (Vector2)(Quaternion.Euler(0, 0, -90f) * moveDirection)
+            : moveDirection;
 
         rb.MovePosition(rb.position + finalDirection.normalized * moveSpeed * Time.fixedDeltaTime);
     }
