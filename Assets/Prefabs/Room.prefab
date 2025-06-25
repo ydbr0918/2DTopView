@@ -477,6 +477,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myRoomPos: {x: 0, y: 0}
   isStartRoom: 1
+  isExitRoom: 0
   doorUp: {fileID: 6918019692569263058}
   doorDown: {fileID: 412361741856072913}
   doorLeft: {fileID: 3911720735235214165}
@@ -485,6 +486,11 @@ MonoBehaviour:
   monsterCount: 3
   spawnAreaWidth: 11
   spawnAreaHeight: 11
+  portalPrefab: {fileID: 3154551892512340648, guid: 8cb265a22c3110848b6fef4f5e56a063, type: 3}
+  origUp: 0
+  origDown: 0
+  origLeft: 0
+  origRight: 0
 --- !u!1 &4758336449937782327
 GameObject:
   m_ObjectHideFlags: 0

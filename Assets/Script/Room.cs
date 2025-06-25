@@ -29,7 +29,7 @@ public class Room : MonoBehaviour
     public GameObject portalPrefab;
 
     // 클리어 여부 (외부에서만 읽기)
-    public bool cleared { get; private set; } = false;
+    public bool cleared { get;  set; } = false;
 
     // 문 복원을 위한 원래 상태 저장 필드
     [HideInInspector] public bool origUp, origDown, origLeft, origRight;

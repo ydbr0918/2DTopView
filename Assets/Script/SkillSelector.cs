@@ -39,11 +39,6 @@ public class SkillSelector : MonoBehaviour
     /// </summary>
     public void ConfirmSkill()
     {
-        SkillData data = skillDataList[currentIndex];
-        SelectionData.Instance.SetSelectedSkill(currentIndex, data);
-        Debug.Log($"[SkillSelector] 선택된 스킬: {data.skillName} (인덱스 {currentIndex})");
-
-        // (필요하다면 여기서 씬 전환도 호출)
-        // e.g. SceneManager.LoadScene("GameScene");
+        SelectionData.Instance.SetSelectedSkill(currentIndex);
     }
 }

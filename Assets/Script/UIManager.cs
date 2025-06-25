@@ -19,6 +19,8 @@ public class UIManager : MonoBehaviour
         weaponSelector.ConfirmWeapon();
         skillSelector.ConfirmSkill();
 
+        SaveManager.DeleteSave();
+
         SceneManager.LoadScene("TopViewMap_1");
     }
 
@@ -29,5 +31,17 @@ public class UIManager : MonoBehaviour
     public void CloseHelpPanel()
     {
         HelpPanel.SetActive(false);
+    }
+
+    public void OnContinue()
+    {
+        if (!SaveManager.HasSave)
+        {
+            Debug.LogWarning("저장된 데이터가 없습니다!");
+            return;
+        }
+
+        SaveManager.LoadGame();
+        SceneManager.LoadScene("TopViewMap_1");
     }
 }

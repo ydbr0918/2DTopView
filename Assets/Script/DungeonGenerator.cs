@@ -1,30 +1,81 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class DungeonGenerator : MonoBehaviour
 {
-    [Header("¹æ ÇÁ¸®ÆÕ & °³¼ö & °£°İ")]
+    public Vector2Int CurrentRoomPos { get; set; }
+
+    [Header("ë°© í”„ë¦¬íŒ¹ & ê°œìˆ˜ & ê°„ê²©")]
     public GameObject roomPrefab;
     public int roomCount = 7;
     public float roomSpacing = 14f;
 
-    [Header("ÇÃ·¹ÀÌ¾î ÇÁ¸®ÆÕ")]
+    [Header("í”Œë ˆì´ì–´ í”„ë¦¬íŒ¹")]
     public GameObject playerPrefab;
 
-    [Header("³¡ ¹æ Æ÷Å» ÇÁ¸®ÆÕ")]
+    [Header("ë ë°© í¬íƒˆ í”„ë¦¬íŒ¹")]
     public GameObject portalPrefab;
 
-    // »ı¼ºµÈ ¹æ ÁÂÇ¥ & ½ºÅ©¸³Æ® ÂüÁ¶ º¸°ü
+    // ìƒì„±ëœ ë°© ì¢Œí‘œ & ìŠ¤í¬ë¦½íŠ¸ ì°¸ì¡° ë³´ê´€
     private HashSet<Vector2Int> occupied = new HashSet<Vector2Int>();
     private List<Vector2Int> roomPositions = new List<Vector2Int>();
     private Dictionary<Vector2Int, Room> rooms = new Dictionary<Vector2Int, Room>();
 
     private bool threeNeighborRoomExists = false;
 
+    /// <summary>ë˜ì „ì— ì¡´ì¬í•˜ëŠ” ëª¨ë“  ë°© ì¢Œí‘œ ë¦¬ìŠ¤íŠ¸ë¥¼ ì™¸ë¶€ì—ì„œ ê°€ì ¸ê°ˆ ìˆ˜ ìˆë„ë¡</summary>
+    public List<Vector2Int> RoomPositions => roomPositions;
+
+   
+
+    /// <summary>í´ë¦¬ì–´ëœ ë°© ì¢Œí‘œë§Œ ê³¨ë¼ì„œ ì™¸ë¶€ì— ë…¸ì¶œ</summary>
+    public List<Vector2Int> ClearedRooms
+        => roomPositions.Where(p => rooms[p].cleared).ToList();
+
     void Start()
     {
-        GenerateDungeon();
+        // â˜… ì €ì¥ëœ ê²Œì„ì´ ìˆìœ¼ë©´ ë¶ˆëŸ¬ì˜¤ê¸° ë¶„ê¸° â˜…
+        if (SaveManager.HasSave)
+        {
+            // 1) ì„¸ì´ë¸Œ íŒŒì¼ ë¡œë“œ
+            SaveManager.LoadGame();
+            var d = SaveManager.LoadedData;
+
+            // 2) ì €ì¥ëœ ì¢Œí‘œ ë¦¬ìŠ¤íŠ¸ë¡œ ë°©ë“¤ ë³µì› (isStartRoom ì„¤ì • í¬í•¨)
+            occupied.Clear();
+            roomPositions.Clear();
+            rooms.Clear();
+            foreach (var sv in d.roomPositions)
+            {
+                Vector2Int coord = sv.ToVector2Int();
+                bool isStart = coord == d.currentRoomPos.ToVector2Int();
+                CreateRoomAt(coord, isStart);
+            }
+
+            // 3) ì´ë¯¸ í´ë¦¬ì–´ëœ ë°©ë“¤ ë³µì›
+            foreach (var sv in d.clearedRooms)
+            {
+                Vector2Int coord = sv.ToVector2Int();
+                var room = rooms[coord];
+                room.cleared = true;
+                room.RestoreOriginalDoors();
+            }
+
+            // 4) ì›ë˜ ì´ì›ƒ ì •ë³´ëŒ€ë¡œ ë¬¸ ì„¸íŒ…
+            SetupAllDoors();
+
+            // 5) í”Œë ˆì´ì–´ ì €ì¥ ìœ„ì¹˜ì— ìŠ¤í°
+            Vector2Int cp = d.currentRoomPos.ToVector2Int();
+            Instantiate(playerPrefab,
+                        new Vector3(cp.x * roomSpacing, cp.y * roomSpacing, 0f),
+                        Quaternion.identity);
+        }
+        else
+        {
+            // ì €ì¥ëœ ê²Œì„ì´ ì—†ìœ¼ë©´ ê¸°ì¡´ ëœë¤ ìƒì„±
+            GenerateDungeon();
+        }
     }
 
     void GenerateDungeon()
@@ -33,11 +84,11 @@ public class DungeonGenerator : MonoBehaviour
         roomPositions.Clear();
         rooms.Clear();
 
-        // 1) ½ÃÀÛ ¹æ (0,0)
+        // 1) ì‹œì‘ ë°© (0,0)
         Vector2Int start = Vector2Int.zero;
         CreateRoomAt(start, true);
 
-        // 2) ³ª¸ÓÁö ¹æ »ı¼º
+        // 2) ë‚˜ë¨¸ì§€ ë°© ìƒì„±
         Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
         int created = 1;
         while (created < roomCount)
@@ -68,8 +119,8 @@ public class DungeonGenerator : MonoBehaviour
             created++;
         }
 
-        // 3) °¢ ¹æ¿¡ ¹® ¼¼ÆÃ
-        // ¿¹½Ã: DungeonGenerator.cs ÀÇ ¹® ¼¼ÆÃ ºÎºĞ
+        // 3) ê° ë°©ì— ë¬¸ ì„¸íŒ…
+        // ì˜ˆì‹œ: DungeonGenerator.cs ì˜ ë¬¸ ì„¸íŒ… ë¶€ë¶„
         foreach (var pos in roomPositions)
         {
             var roomComp = rooms[pos];
@@ -89,21 +140,34 @@ public class DungeonGenerator : MonoBehaviour
             TrySetDoor(roomComp.gameObject, pos, Vector2Int.right, "Right Door", new Vector3(-2, 0, 0));
         }
 
-        // 4) ÇÃ·¹ÀÌ¾î ½ºÆù
+        // 4) í”Œë ˆì´ì–´ ìŠ¤í°
         Instantiate(playerPrefab,
                     new Vector3(start.x * roomSpacing, start.y * roomSpacing, 0f),
                     Quaternion.identity);
 
-        // 5) ¡°³¡ ¹æ¡± °áÁ¤: ½ÃÀÛ¹æ¿¡¼­ ¸ÇÇØÆ° °Å¸®°¡ °¡Àå ¸Õ ¹æ
+        // 5) â€œë ë°©â€ ê²°ì •: ì‹œì‘ë°©ì—ì„œ ë§¨í•´íŠ¼ ê±°ë¦¬ê°€ ê°€ì¥ ë¨¼ ë°©
         Vector2Int exitPos = roomPositions
             .OrderByDescending(p => Mathf.Abs(p.x - start.x) + Mathf.Abs(p.y - start.y))
             .First();
 
-        // ±× ¹æ¿¡ isExitRoom = true, portalPrefab ÇÒ´ç
+        // ê·¸ ë°©ì— isExitRoom = true, portalPrefab í• ë‹¹
         var exitRoom = rooms[exitPos];
         exitRoom.isExitRoom = true;
         exitRoom.portalPrefab = portalPrefab;
     }
+
+    private void SetupAllDoors()
+    {
+        foreach (var pos in roomPositions)
+        {
+            var roomComp = rooms[pos];
+            TrySetDoor(roomComp.gameObject, pos, Vector2Int.up, "Up Door", new Vector3(0, -2, 0));
+            TrySetDoor(roomComp.gameObject, pos, Vector2Int.down, "Down Door", new Vector3(0, 2, 0));
+            TrySetDoor(roomComp.gameObject, pos, Vector2Int.left, "Left Door", new Vector3(2, 0, 0));
+            TrySetDoor(roomComp.gameObject, pos, Vector2Int.right, "Right Door", new Vector3(-2, 0, 0));
+        }
+    }
+
 
     private void CreateRoomAt(Vector2Int coord, bool isStart)
     {
@@ -137,22 +201,27 @@ public class DungeonGenerator : MonoBehaviour
         var tr = roomGO.transform.Find(doorName);
         if (tr == null) return;
 
-        bool hasNeighbor = occupied.Contains(myPos + dir);
+        Vector2Int target = myPos + dir;
+        bool hasNeighbor = occupied.Contains(target);
+
+        // ë¬¸ ì¼œ/ë„ê¸°
         tr.gameObject.SetActive(hasNeighbor);
+
+        // ì¸ì ‘ ë°©ì´ ìˆì„ ë•Œë§Œ í¬íƒˆ ì„¸íŒ…
         if (hasNeighbor)
         {
             var portal = tr.GetComponent<DoorPortal>();
             portal.myRoomPos = myPos;
-            portal.targetRoomPos = myPos + dir;
+            portal.targetRoomPos = target;
             portal.entryOffset = entryOffset;
         }
     }
 
-    // DoorPortal ¡æ ÇÃ·¹ÀÌ¾î ÅÚ·¹Æ÷Æ®¿ë
+    // DoorPortal â†’ í”Œë ˆì´ì–´ í…”ë ˆí¬íŠ¸ìš©
     public Vector3 GetRoomWorldPos(Vector2Int p)
         => new Vector3(p.x * roomSpacing, p.y * roomSpacing, 0f);
 
-    // DoorPortal ¡æ Room.OnPlayerEnter È£Ãâ¿ë
+    // DoorPortal â†’ Room.OnPlayerEnter í˜¸ì¶œìš©
     public Room GetRoomScript(Vector2Int p)
     {
         rooms.TryGetValue(p, out var r);

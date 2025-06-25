@@ -375,8 +375,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 583238980}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &438382656
@@ -565,7 +564,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 438382655}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &583238981
 MonoBehaviour:
@@ -2636,6 +2635,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03fcd6868e2e83f46a5ca4ea0f53cac4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  weaponOptions:
+  - {fileID: 11400000, guid: c65a708ae9becd9498e3f24d1c996db0, type: 2}
+  - {fileID: 11400000, guid: 6a23e9ec4a0f1ba4c9a49c9b6f45838d, type: 2}
+  - {fileID: 11400000, guid: e714f2d99bb268840835cd9f479a5aad, type: 2}
+  skillOptions:
+  - {fileID: 11400000, guid: 7e0a510cbc925984e8b059cf5bd4d859, type: 2}
+  - {fileID: 11400000, guid: f909674e27998e0468947cdf9eea94a8, type: 2}
 --- !u!4 &1973881859
 Transform:
   m_ObjectHideFlags: 0
@@ -2963,3 +2969,4 @@ SceneRoots:
   - {fileID: 1809044733}
   - {fileID: 438382655}
   - {fileID: 1973881859}
+  - {fileID: 583238980}

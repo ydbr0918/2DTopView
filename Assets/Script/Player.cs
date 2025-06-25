@@ -1,7 +1,7 @@
 ﻿using System.Collections;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer))]
 public class Player : MonoBehaviour
@@ -9,7 +9,6 @@ public class Player : MonoBehaviour
     [Header("Movement")]
     [SerializeField] float moveSpeed = 5f;
     Vector2 input, velocity;
-
     Rigidbody2D rb;
     SpriteRenderer sR;
 
@@ -25,7 +24,7 @@ public class Player : MonoBehaviour
     [SerializeField] Transform bulletSpawnPoint;
 
     [Header("Health")]
-    public int maxHp = 100;
+    [SerializeField] int maxHp = 100;
     int currentHp;
     [SerializeField] Slider healthSlider;
     [SerializeField] TextMeshProUGUI healthText;
@@ -39,7 +38,28 @@ public class Player : MonoBehaviour
     int currentAmmo;
     [SerializeField] TextMeshProUGUI ammoText;
 
-    float fireRate = 0.5f;
+    public int Level => level;
+    public int Exp => exp;
+    public int ExpToNext => expToNext;
+    public int MaxHp => maxHp;
+    public int CurrentHp => currentHp;
+    public int MaxAmmo => maxAmmo;
+    public int CurrentAmmo => currentAmmo;
+
+    [Header("Weapon Data")]
+    public WeaponData weaponData;
+    private WeaponData currentWeapon;
+   
+  
+    private float runtimeFireRate;
+    private float runtimeBulletSpeed;
+    int runtimeBaseDamage;
+
+    public float FireRate => runtimeFireRate;
+    public float BulletSpeed => runtimeBulletSpeed;
+    public int BaseDamage => runtimeBaseDamage;
+
+    bool isReloading = false;
     float lastShotTime = -999f;
 
     Vector2 lastMoveDirection = Vector2.down;
@@ -50,45 +70,34 @@ public class Player : MonoBehaviour
     GameObject currentTargetCircle;
     Transform previousTarget;
 
-    [Header("Weapon Data")]
-    public WeaponData currentWeapon;
-
-    [Header("Weapon Damage")]
-    public int baseDamage = 10;
-
-    bool isReloading = false;
-
     [Header("Level Up UI")]
-    [SerializeField] private TextMeshProUGUI levelUpText; // Inspector에 드래그
-    private Coroutine levelUpCoroutine;
+    [SerializeField] TextMeshProUGUI levelUpText;
+    Coroutine levelUpCoroutine;
 
-    private InGameUIManager uiManager;
+    InGameUIManager uiManager;
 
-    private void Awake()
+    
+
+
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         sR = GetComponent<SpriteRenderer>();
 
-        // ★ 항상 InGameUIManager를 찾아 할당
         uiManager = FindObjectOfType<InGameUIManager>();
-        if (uiManager == null)
-            Debug.LogWarning("[Player] InGameUIManager를 찾을 수 없습니다!");
-
-        // LevelUpText 자동 할당 (Inspector 드래그를 안 했을 경우)
         if (levelUpText == null)
         {
             var go = GameObject.Find("LevelUpText");
             if (go != null)
                 levelUpText = go.GetComponent<TextMeshProUGUI>();
             else
-                Debug.LogWarning("[Player] LevelUpText 게임오브젝트를 찾을 수 없습니다!");
+                Debug.LogWarning("[Player] LevelUpText 오브젝트를 찾을 수 없습니다!");
         }
 
-        // 레벨업 텍스트는 시작 시 숨기기
+        // 시작 시 무조건 숨기기
         if (levelUpText != null)
             levelUpText.gameObject.SetActive(false);
-
-        // (기존에 쓰던 UI 자동 할당들)
+        // 자동 UI 할당 (씬에 오브젝트가 있으면)
         healthSlider = healthSlider ?? GameObject.Find("PlayerHealthSlider")?.GetComponent<Slider>();
         healthText = healthText ?? GameObject.Find("PlayerHealthText")?.GetComponent<TextMeshProUGUI>();
         expText = expText ?? GameObject.Find("PlayerExpText")?.GetComponent<TextMeshProUGUI>();
@@ -97,91 +106,104 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        // ----- 1) Health / Exp 초기화 -----
-        currentHp = maxHp;
-        UpdateHealthUI();
-        UpdateExpUI();
-
-        // ----- 2) Weapon 세팅 (무기 데이터 → maxAmmo/currentAmmo 세팅) -----
-        currentWeapon = SelectionData.Instance.SelectedWeapon;
-        if (currentWeapon != null)
-        {
-            fireRate = currentWeapon.fireRate;
-            maxAmmo = currentWeapon.maxAmmo;
-            currentAmmo = maxAmmo;
-        }
+        if (SaveManager.HasSave)
+            LoadSavedData();
         else
-        {
-            // 무기 미선택 시 경고
-            Debug.LogWarning("[Player] SelectedWeapon 없음, 기본 무기 사용");
-            currentAmmo = maxAmmo;
-        }
-
-        // ----- 3) Skill 적용 (무기 세팅 뒤에) -----
-        var skill = SelectionData.Instance.SelectedSkill;
-        if (skill != null)
-        {
-            skill.Activate(gameObject);
-        }
-        else
-        {
-            Debug.LogWarning("[Player] SelectedSkill 없음");
-        }
-
-        // 스킬이 maxAmmo를 늘려주었으면 currentAmmo 동기화
-        currentAmmo = maxAmmo;
-
-        // ----- 4) 초기 쿨다운 및 UI -----
-        lastShotTime = Time.time - fireRate;
-        UpdateAmmoUI();
+            InitNewGame();
     }
 
-    private void Update()
+    private void InitNewGame()
     {
-        // 이동 입력 & 스프라이트
+        // ▶ HP/EXP/AMMO 기본 초기화
+        currentHp = maxHp;
+        exp = 0;
+        expToNext = 10;
+        currentAmmo = maxAmmo;
+        UpdateHealthUI();
+        UpdateExpUI();
+        UpdateAmmoUI();
+
+        // ▶ 무기/스킬 선택값 가져오기
+        weaponData = SelectionData.Instance.SelectedWeapon;
+        // ① 무기 원본 수치
+        float weaponFireRate = weaponData != null ? weaponData.fireRate : 0.5f;
+        float weaponBulletSpeed = weaponData != null ? weaponData.bulletSpeed : 5f;
+        int weaponBaseDamage = weaponData != null ? weaponData.damage : 10;
+
+        // ② 런타임 변수에 복사
+        runtimeFireRate = weaponFireRate;
+        runtimeBulletSpeed = weaponBulletSpeed;
+        runtimeBaseDamage = weaponBaseDamage;
+
+        // ▶ 스킬 버프 한 번 적용 (AmmoBoostSkill, DamageBoostSkill 등)
+        SelectionData.Instance.SelectedSkill?.Activate(gameObject);
+
+        // ▶ UI / 쿨다운 동기화
+        UpdateAmmoUI();
+        lastShotTime = Time.time - runtimeFireRate;
+    }
+
+
+    private void LoadSavedData()
+    {
+        SaveManager.LoadGame();
+        var d = SaveManager.LoadedData;
+
+        // ▶ 저장된 HP/EXP/AMMO 복원
+        level = d.level;
+        exp = d.exp;
+        maxHp = d.maxHp;
+        currentHp = d.currentHp;
+        maxAmmo = d.maxAmmo;
+        currentAmmo = d.currentAmmo;
+
+        // ▶ 저장된 런타임 스탯 복원
+        runtimeFireRate = d.savedFireRate;
+        runtimeBulletSpeed = d.savedBulletSpeed;
+        runtimeBaseDamage = d.savedBaseDamage;
+
+        // ▶ UI 업데이트
+        UpdateHealthUI();
+        UpdateExpUI();
+        UpdateAmmoUI();
+
+        // ▶ 스킬은 이미 저장된 버프가 runtimeBaseDamage에 반영되어 있으므로 재적용 불필요
+    }
+    void Update()
+    {
+        // 이동
         input.x = Input.GetAxisRaw("Horizontal");
         input.y = Input.GetAxisRaw("Vertical");
         velocity = input.normalized * moveSpeed;
-
         if (input.sqrMagnitude > 0.01f)
         {
             if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
                 sR.sprite = input.x > 0 ? spriteRight : spriteLeft;
             else
                 sR.sprite = input.y > 0 ? spriteUp : spriteDown;
-
             lastMoveDirection = input.normalized;
         }
 
-        // 타겟 마커
+        // 타겟
         nearestEnemy = FindNearestEnemy();
         HandleTargetMarker();
 
-        // 발사
-        if (Input.GetKeyDown(KeyCode.Z) && !isReloading)
-            TryShoot();
-
-        // 수동 재장전
+        // 사격
+        if (Input.GetKeyDown(KeyCode.Z) && !isReloading) TryShoot();
         if (Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < maxAmmo)
             StartCoroutine(Reload());
-
-        // 스킬 재사용 (예: X키)
         if (Input.GetKeyDown(KeyCode.P))
             SelectionData.Instance.SelectedSkill?.Activate(gameObject);
     }
 
-    private void FixedUpdate()
-    {
-        rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
-    }
+    void FixedUpdate()
+        => rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
 
     void HandleTargetMarker()
     {
         if (nearestEnemy != previousTarget)
         {
-            if (currentTargetCircle != null)
-                Destroy(currentTargetCircle);
-
+            if (currentTargetCircle != null) Destroy(currentTargetCircle);
             if (nearestEnemy != null)
             {
                 currentTargetCircle = Instantiate(
@@ -192,25 +214,22 @@ public class Player : MonoBehaviour
                 );
                 currentTargetCircle.transform.localPosition = Vector3.down * 0.1f;
             }
-
             previousTarget = nearestEnemy;
         }
     }
 
     void TryShoot()
     {
-        if (Time.time - lastShotTime < fireRate) return;
+        if (Time.time - lastShotTime < runtimeFireRate) return;
         if (currentAmmo <= 0)
         {
             StartCoroutine(Reload());
             return;
         }
-
         ShootWeapon();
         lastShotTime = Time.time;
         currentAmmo--;
         UpdateAmmoUI();
-
         if (currentAmmo <= 0)
             StartCoroutine(Reload());
     }
@@ -218,52 +237,45 @@ public class Player : MonoBehaviour
     IEnumerator Reload()
     {
         isReloading = true;
-
-        // ① 재장전이 시작될 때 텍스트 켜기
         uiManager?.ShowReloadText();
-
-        // 실제 재장전 시간 대기
-        float delay = currentWeapon != null
-            ? currentWeapon.reloadTime
-            : 1f;
-        yield return new WaitForSeconds(delay);
-
-        // 탄창 채우기
+        yield return new WaitForSeconds(runtimeFireRate);
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
         isReloading = false;
-
-        // ② 재장전이 끝나는 순간 텍스트 끄기
         uiManager?.HideReloadText();
     }
 
-
-    void ShootWeapon()
+    private void ShootWeapon()
     {
+        // 1) 발사 방향 결정
         Vector2 shootDir = nearestEnemy != null
             ? (nearestEnemy.position - transform.position).normalized
             : lastMoveDirection;
 
-        int shotCount = currentWeapon?.bulletPerShot ?? 1;
-        float spread = currentWeapon?.spreadAngle ?? 0f;
-        float range = currentWeapon?.range ?? 10f;
-        float speed = currentWeapon?.bulletSpeed ?? 5f;
-        int weaponDmg = currentWeapon?.damage ?? 0;
+        // 2) currentWeapon이 null 아니면 속성, 아니면 기본값
+        int shotCount = currentWeapon != null ? currentWeapon.bulletPerShot : 1;
+        float spreadAngle = currentWeapon != null ? currentWeapon.spreadAngle : 0f;
+        float range = currentWeapon != null ? currentWeapon.range : 10f;
 
+        // 3) 실제 발사 루프
         for (int i = 0; i < shotCount; i++)
         {
-            float angle = Random.Range(-spread / 2f, spread / 2f);
+            float angle = Random.Range(-spreadAngle / 2f, spreadAngle / 2f);
             Vector2 dir = Quaternion.Euler(0, 0, angle) * shootDir;
-            var b = Instantiate(bulletPrefab, bulletSpawnPoint.position, Quaternion.identity);
-            var bullet = b.GetComponent<Bullet>();
+
+            var go = Instantiate(bulletPrefab, bulletSpawnPoint.position, Quaternion.identity);
+            var bullet = go.GetComponent<Bullet>();
+            if (bullet == null) continue;
+
+            // 4) 방향·속도·사거리·데미지 세팅
             bullet.SetDirection(dir);
-            bullet.speed = speed;
+            bullet.speed = runtimeBulletSpeed;  // “0 데미지” 문제 원인 해결
             bullet.maxTravelDistance = range;
-
-
-            bullet.damage = baseDamage + weaponDmg;
+            bullet.damage = runtimeBaseDamage;   // 스킬 버프 포함 최종 데미지
         }
     }
+
+
 
     Transform FindNearestEnemy()
     {
@@ -292,27 +304,16 @@ public class Player : MonoBehaviour
         }
         else if (col.CompareTag("Enemy"))
         {
-            TakeDamage(10);
+            currentHp = Mathf.Clamp(currentHp - 10, 0, maxHp);
+            UpdateHealthUI();
         }
-        else if (col.CompareTag("Ground"))
-        {
-            velocity = Vector2.zero;
-        }
-    }
-
-    void TakeDamage(int amt)
-    {
-        currentHp = Mathf.Clamp(currentHp - amt, 0, maxHp);
-        UpdateHealthUI();
-        if (currentHp <= 0) Debug.Log("플레이어 사망");
     }
 
     public void AddExp(int amount)
     {
         exp += amount;
-
-        // 레벨업 체크 루프
         bool didLevelUp = false;
+
         while (exp >= expToNext)
         {
             exp -= expToNext;
@@ -325,26 +326,18 @@ public class Player : MonoBehaviour
         }
         UpdateExpUI();
 
-        // 레벨업이 한 번이라도 일어났으면…
         if (didLevelUp)
-        {
-            ShowLevelUpText();
-        }
+            ShowLevelUpText();  // ← 여기를 꼭 추가!
     }
 
-    private void ShowLevelUpText()
-    {
-        // 이미 코루틴이 돌고 있으면 멈추고 재시작
-        if (levelUpCoroutine != null)
-            StopCoroutine(levelUpCoroutine);
-        levelUpCoroutine = StartCoroutine(LevelUpCoroutine());
-    }
 
-    private IEnumerator LevelUpCoroutine()
+
+
+    IEnumerator ShowLevelUp()
     {
-        levelUpText.gameObject.SetActive(true);
+        levelUpText?.gameObject.SetActive(true);
         yield return new WaitForSeconds(1f);
-        levelUpText.gameObject.SetActive(false);
+        levelUpText?.gameObject.SetActive(false);
     }
 
     void UpdateHealthUI()
@@ -358,40 +351,25 @@ public class Player : MonoBehaviour
     }
 
     void UpdateExpUI()
-    {
-        expText?.SetText($"{exp} / {expToNext}");
-    }
+        => expText?.SetText($"{exp} / {expToNext}");
 
     void UpdateAmmoUI()
+        => ammoText?.SetText($"{currentAmmo} / {maxAmmo}");
+
+    public void IncreaseDamage(int amount)
     {
-        ammoText?.SetText($"{currentAmmo} / {maxAmmo}");
+        // 런타임 데미지로 관리하고 계시다면 runtimeBaseDamage 를,
+        // 아니면 원래 baseDamage 필드를 사용하셔도 좋습니다.
+        runtimeBaseDamage += amount;
+        Debug.Log($"[Player] DamageBoostSkill 적용 → +{amount}, 현재 베이스 데미지 = {runtimeBaseDamage}");
     }
 
-    /// <summary>HealSkill 에서 호출</summary>
-    public void Heal(int amount)
-    {
-        currentHp = Mathf.Clamp(currentHp + amount, 0, maxHp);
-        UpdateHealthUI();
-        Debug.Log($"[Player] Heal → +{amount} (now {currentHp}/{maxHp})");
-    }
-
-    /// <summary>AmmoBoostSkill 에서 호출</summary>
+    
     public void IncreaseMaxAmmo(int amount)
     {
         maxAmmo += amount;
         currentAmmo += amount;
         UpdateAmmoUI();
-        Debug.Log($"[Player] IncreaseMaxAmmo → +{amount}");
+        Debug.Log($"[Player] AmmoBoostSkill 적용 → +{amount}, 현재 탄창 크기 = {maxAmmo}");
     }
-
-    /// <summary>DamageBoostSkill 에서 호출</summary>
-    public void IncreaseDamage(int amount)
-    {
-        baseDamage += amount;
-        Debug.Log($"[Player] IncreaseDamage → +{amount} (now {baseDamage})");
-    }
-
-
-
 }
-

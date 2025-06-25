@@ -20,6 +20,6 @@ MonoBehaviour:
   reloadTime: 2
   bulletSpeed: 15
   range: 5
-  baseDamage: 10
+  baseDamage: 25
   bulletPerShot: 5
   spreadAngle: 45

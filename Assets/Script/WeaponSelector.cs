@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WeaponSelector : MonoBehaviour
 {
@@ -40,11 +41,10 @@ public class WeaponSelector : MonoBehaviour
     /// </summary>
     public void ConfirmWeapon()
     {
-        // 현재 인덱스에 대응하는 WeaponData 를 SelectionData 에 저장
-        WeaponData data = weaponDataList[currentIndex];
-        SelectionData.Instance.SetSelectedWeapon(currentIndex, data);
+        // 현재 화면에 켜진 WeaponIcon 중 currentIndex 번째를 선택했다
+        SelectionData.Instance.SetSelectedWeapon(currentIndex);
 
-        // (필요하다면 여기서 씬 전환 호출)
-        // e.g. SceneManager.LoadScene("GameScene");
+        // 씬 전환(예: SelectRoom → TopViewMap_1) 호출
+        SceneManager.LoadScene("TopViewMap_1");
     }
 }

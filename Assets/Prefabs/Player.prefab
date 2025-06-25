@@ -108,7 +108,7 @@ SpriteRenderer:
   m_SortingLayerID: 1573685541
   m_SortingLayer: 2
   m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: bb74539567d092b4ab6a8a7dee6b825c, type: 3}
+  m_Sprite: {fileID: 1711536191, guid: 23748c298f885bf4c89671f6d30f562b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -132,10 +132,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
-  spriteUp: {fileID: 21300000, guid: bb74539567d092b4ab6a8a7dee6b825c, type: 3}
-  spriteDown: {fileID: 21300000, guid: 74c3936e6c4aa8441836db3107565545, type: 3}
-  spriteLeft: {fileID: 21300000, guid: ae318c3837f6ba1488b284c007281b50, type: 3}
-  spriteRight: {fileID: 21300000, guid: efafde25dce0d4b4caf90d8ef3c7c540, type: 3}
+  spriteUp: {fileID: 1711536191, guid: 23748c298f885bf4c89671f6d30f562b, type: 3}
+  spriteDown: {fileID: 2067489653, guid: 23748c298f885bf4c89671f6d30f562b, type: 3}
+  spriteLeft: {fileID: -650144232, guid: 23748c298f885bf4c89671f6d30f562b, type: 3}
+  spriteRight: {fileID: -1992524239, guid: 23748c298f885bf4c89671f6d30f562b, type: 3}
   scoreText: {fileID: 0}
   bulletPrefab: {fileID: 1627746673038390614, guid: 6fea00a73f3dfe5469fdfed3daf9b2a7, type: 3}
   bulletSpawnPoint: {fileID: 4482077466310364405}
@@ -212,7 +212,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.16, y: 0.16}
+    oldSize: {x: 0.75, y: 0.9375}
     newSize: {x: 0.16, y: 0.16}
     adaptiveTilingThreshold: 0.5
     drawMode: 0

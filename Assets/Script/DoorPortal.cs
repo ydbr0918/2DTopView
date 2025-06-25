@@ -15,23 +15,27 @@ public class DoorPortal : MonoBehaviour
         miniMapController = FindObjectOfType<MiniMapController>();
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player") || dungeon == null) return;
 
-        // 텔레포트
-        var dest = dungeon.GetRoomWorldPos(targetRoomPos) + entryOffset;
-        other.transform.position = dest;
+        // 1) 플레이어 텔레포트
+        Vector3 wp = dungeon.GetRoomWorldPos(targetRoomPos) + entryOffset;
+        other.transform.position = wp;
 
+        // → 이 줄을 바로 아래에 추가하세요!
+        dungeon.CurrentRoomPos = targetRoomPos;
+
+        // 2) 미니맵 업데이트
         miniMapController?.UpdatePlayerIcon(targetRoomPos);
 
-        // 방 로직
-        var targetRoom = dungeon.GetRoomScript(targetRoomPos);
+        // 3) 새 방 진입 로직 호출
+        Room targetRoom = dungeon.GetRoomScript(targetRoomPos);
         targetRoom?.OnPlayerEnter();
 
-        // origin 문 닫기 (시작 방도, 클리어된 방도 닫지 않음)
-        var originRoom = dungeon.GetRoomScript(myRoomPos);
-        if (originRoom != null && !originRoom.isStartRoom && !originRoom.cleared)
+        // 4) 이전(origin) 방 문 처리…
+        Room originRoom = dungeon.GetRoomScript(myRoomPos);
+        if (originRoom != null && !originRoom.cleared)
             gameObject.SetActive(false);
     }
 }
