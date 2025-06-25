@@ -131,6 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a2301cc3d7c3f440b49a305e30d8748, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 5
   spriteUp: {fileID: 21300000, guid: bb74539567d092b4ab6a8a7dee6b825c, type: 3}
   spriteDown: {fileID: 21300000, guid: 74c3936e6c4aa8441836db3107565545, type: 3}
   spriteLeft: {fileID: 21300000, guid: ae318c3837f6ba1488b284c007281b50, type: 3}
@@ -138,16 +139,16 @@ MonoBehaviour:
   scoreText: {fileID: 0}
   bulletPrefab: {fileID: 1627746673038390614, guid: 6fea00a73f3dfe5469fdfed3daf9b2a7, type: 3}
   bulletSpawnPoint: {fileID: 4482077466310364405}
-  bulletSpeed: 10
   maxHp: 100
   healthSlider: {fileID: 0}
   healthText: {fileID: 0}
   expText: {fileID: 0}
   maxAmmo: 10
-  fireRate: 0.3
   ammoText: {fileID: 0}
   targetCirclePrefab: {fileID: 376253524904106497, guid: d1c38568c1f32f5469dcb94e6f059c42, type: 3}
+  currentWeapon: {fileID: 0}
   baseDamage: 10
+  levelUpText: {fileID: 5994646167999582729, guid: efe4c9592b7e49443871c39fca7b72dd, type: 3}
 --- !u!50 &3481574333095510322
 Rigidbody2D:
   serializedVersion: 4

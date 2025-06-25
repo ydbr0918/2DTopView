@@ -58,6 +58,10 @@ public class Player : MonoBehaviour
 
     bool isReloading = false;
 
+    [Header("Level Up UI")]
+    [SerializeField] private TextMeshProUGUI levelUpText; // Inspector에 드래그
+    private Coroutine levelUpCoroutine;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -68,6 +72,19 @@ public class Player : MonoBehaviour
         healthText = healthText ?? GameObject.Find("PlayerHealthText")?.GetComponent<TextMeshProUGUI>();
         expText = expText ?? GameObject.Find("PlayerExpText")?.GetComponent<TextMeshProUGUI>();
         ammoText = ammoText ?? GameObject.Find("AmmoText")?.GetComponent<TextMeshProUGUI>();
+        if (levelUpText == null)
+        {
+            // 씬에 있는 텍스트 오브젝트 이름을 정확히 넣어주세요.
+            var go = GameObject.Find("LevelUpText");
+            if (go != null)
+                levelUpText = go.GetComponent<TextMeshProUGUI>();
+            else
+                Debug.LogWarning("[Player] LevelUpText 게임오브젝트를 찾을 수 없습니다!");
+        }
+
+        // 시작할 땐 숨겨두기
+        if (levelUpText != null)
+            levelUpText.gameObject.SetActive(false);
     }
 
     private void Start()
@@ -271,6 +288,9 @@ public class Player : MonoBehaviour
     public void AddExp(int amount)
     {
         exp += amount;
+
+        // 레벨업 체크 루프
+        bool didLevelUp = false;
         while (exp >= expToNext)
         {
             exp -= expToNext;
@@ -279,8 +299,30 @@ public class Player : MonoBehaviour
             maxHp += 10;
             currentHp = maxHp;
             UpdateHealthUI();
+            didLevelUp = true;
         }
         UpdateExpUI();
+
+        // 레벨업이 한 번이라도 일어났으면…
+        if (didLevelUp)
+        {
+            ShowLevelUpText();
+        }
+    }
+
+    private void ShowLevelUpText()
+    {
+        // 이미 코루틴이 돌고 있으면 멈추고 재시작
+        if (levelUpCoroutine != null)
+            StopCoroutine(levelUpCoroutine);
+        levelUpCoroutine = StartCoroutine(LevelUpCoroutine());
+    }
+
+    private IEnumerator LevelUpCoroutine()
+    {
+        levelUpText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(2f);
+        levelUpText.gameObject.SetActive(false);
     }
 
     void UpdateHealthUI()
