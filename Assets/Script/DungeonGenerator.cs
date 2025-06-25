@@ -12,7 +12,10 @@ public class DungeonGenerator : MonoBehaviour
     [Header("플레이어 프리팹")]
     public GameObject playerPrefab;
 
-    // 이미 생성된 좌표 체크용
+    [Header("끝 방 포탈 프리팹")]
+    public GameObject portalPrefab;
+
+    // 생성된 방 좌표 & 스크립트 참조 보관
     private HashSet<Vector2Int> occupied = new HashSet<Vector2Int>();
     private List<Vector2Int> roomPositions = new List<Vector2Int>();
     private Dictionary<Vector2Int, Room> rooms = new Dictionary<Vector2Int, Room>();
@@ -30,11 +33,11 @@ public class DungeonGenerator : MonoBehaviour
         roomPositions.Clear();
         rooms.Clear();
 
-        // 1) 시작 방
-        Vector2Int center = Vector2Int.zero;
-        CreateRoomAt(center, true);
+        // 1) 시작 방 (0,0)
+        Vector2Int start = Vector2Int.zero;
+        CreateRoomAt(start, true);
 
-        // 2) 나머지 방
+        // 2) 나머지 방 생성
         Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
         int created = 1;
         while (created < roomCount)
@@ -65,43 +68,47 @@ public class DungeonGenerator : MonoBehaviour
             created++;
         }
 
-        // 3) 문 세팅 (오직 이웃 여부만 체크)
+        // 3) 각 방에 문 세팅
+        // 예시: DungeonGenerator.cs 의 문 세팅 부분
         foreach (var pos in roomPositions)
         {
-            var roomGO = rooms[pos].gameObject;
             var roomComp = rooms[pos];
-
-            // 위쪽
             bool hasUp = occupied.Contains(pos + Vector2Int.up);
-            TrySetDoor(roomGO, pos, Vector2Int.up, "Up Door", new Vector3(0, -2, 0));
-            roomComp.origUp = hasUp;
-
-            // 아래쪽
             bool hasDown = occupied.Contains(pos + Vector2Int.down);
-            TrySetDoor(roomGO, pos, Vector2Int.down, "Down Door", new Vector3(0, 2, 0));
-            roomComp.origDown = hasDown;
-
-            // 왼쪽
             bool hasLeft = occupied.Contains(pos + Vector2Int.left);
-            TrySetDoor(roomGO, pos, Vector2Int.left, "Left Door", new Vector3(2, 0, 0));
-            roomComp.origLeft = hasLeft;
-
-            // 오른쪽
             bool hasRight = occupied.Contains(pos + Vector2Int.right);
-            TrySetDoor(roomGO, pos, Vector2Int.right, "Right Door", new Vector3(-2, 0, 0));
+
+            roomComp.origUp = hasUp;
+            roomComp.origDown = hasDown;
+            roomComp.origLeft = hasLeft;
             roomComp.origRight = hasRight;
+
+            TrySetDoor(roomComp.gameObject, pos, Vector2Int.up, "Up Door", new Vector3(0, -2, 0));
+            TrySetDoor(roomComp.gameObject, pos, Vector2Int.down, "Down Door", new Vector3(0, 2, 0));
+            TrySetDoor(roomComp.gameObject, pos, Vector2Int.left, "Left Door", new Vector3(2, 0, 0));
+            TrySetDoor(roomComp.gameObject, pos, Vector2Int.right, "Right Door", new Vector3(-2, 0, 0));
         }
 
         // 4) 플레이어 스폰
         Instantiate(playerPrefab,
-                    new Vector3(center.x * roomSpacing, center.y * roomSpacing, 0f),
+                    new Vector3(start.x * roomSpacing, start.y * roomSpacing, 0f),
                     Quaternion.identity);
+
+        // 5) “끝 방” 결정: 시작방에서 맨해튼 거리가 가장 먼 방
+        Vector2Int exitPos = roomPositions
+            .OrderByDescending(p => Mathf.Abs(p.x - start.x) + Mathf.Abs(p.y - start.y))
+            .First();
+
+        // 그 방에 isExitRoom = true, portalPrefab 할당
+        var exitRoom = rooms[exitPos];
+        exitRoom.isExitRoom = true;
+        exitRoom.portalPrefab = portalPrefab;
     }
 
     private void CreateRoomAt(Vector2Int coord, bool isStart)
     {
-        var worldPos = new Vector3(coord.x * roomSpacing, coord.y * roomSpacing, 0f);
-        var room = Instantiate(roomPrefab, worldPos, Quaternion.identity)
+        Vector3 wp = new Vector3(coord.x * roomSpacing, coord.y * roomSpacing, 0f);
+        var room = Instantiate(roomPrefab, wp, Quaternion.identity)
                    .GetComponent<Room>();
 
         room.myRoomPos = coord;
@@ -130,24 +137,22 @@ public class DungeonGenerator : MonoBehaviour
         var tr = roomGO.transform.Find(doorName);
         if (tr == null) return;
 
-        Vector2Int target = myPos + dir;
-        bool hasNeighbor = occupied.Contains(target);
-
-        // **오직** hasNeighbor 만 체크 (시작 방도 예외 없이)
+        bool hasNeighbor = occupied.Contains(myPos + dir);
         tr.gameObject.SetActive(hasNeighbor);
-
         if (hasNeighbor)
         {
             var portal = tr.GetComponent<DoorPortal>();
             portal.myRoomPos = myPos;
-            portal.targetRoomPos = target;
+            portal.targetRoomPos = myPos + dir;
             portal.entryOffset = entryOffset;
         }
     }
 
+    // DoorPortal → 플레이어 텔레포트용
     public Vector3 GetRoomWorldPos(Vector2Int p)
         => new Vector3(p.x * roomSpacing, p.y * roomSpacing, 0f);
 
+    // DoorPortal → Room.OnPlayerEnter 호출용
     public Room GetRoomScript(Vector2Int p)
     {
         rooms.TryGetValue(p, out var r);
