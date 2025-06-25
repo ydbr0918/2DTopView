@@ -16,8 +16,8 @@ MonoBehaviour:
   icon: {fileID: 0}
   description: 
   maxAmmo: 5
-  fireRate: 1.4
-  reloadTime: 10
+  fireRate: 0.5
+  reloadTime: 2
   bulletSpeed: 15
   range: 5
   baseDamage: 10

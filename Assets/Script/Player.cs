@@ -62,19 +62,21 @@ public class Player : MonoBehaviour
     [SerializeField] private TextMeshProUGUI levelUpText; // Inspector에 드래그
     private Coroutine levelUpCoroutine;
 
+    private InGameUIManager uiManager;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         sR = GetComponent<SpriteRenderer>();
 
-        // UI 자동 할당 (씬에 정확한 이름 필요)
-        healthSlider = healthSlider ?? GameObject.Find("PlayerHealthSlider")?.GetComponent<Slider>();
-        healthText = healthText ?? GameObject.Find("PlayerHealthText")?.GetComponent<TextMeshProUGUI>();
-        expText = expText ?? GameObject.Find("PlayerExpText")?.GetComponent<TextMeshProUGUI>();
-        ammoText = ammoText ?? GameObject.Find("AmmoText")?.GetComponent<TextMeshProUGUI>();
+        // ★ 항상 InGameUIManager를 찾아 할당
+        uiManager = FindObjectOfType<InGameUIManager>();
+        if (uiManager == null)
+            Debug.LogWarning("[Player] InGameUIManager를 찾을 수 없습니다!");
+
+        // LevelUpText 자동 할당 (Inspector 드래그를 안 했을 경우)
         if (levelUpText == null)
         {
-            // 씬에 있는 텍스트 오브젝트 이름을 정확히 넣어주세요.
             var go = GameObject.Find("LevelUpText");
             if (go != null)
                 levelUpText = go.GetComponent<TextMeshProUGUI>();
@@ -82,9 +84,15 @@ public class Player : MonoBehaviour
                 Debug.LogWarning("[Player] LevelUpText 게임오브젝트를 찾을 수 없습니다!");
         }
 
-        // 시작할 땐 숨겨두기
+        // 레벨업 텍스트는 시작 시 숨기기
         if (levelUpText != null)
             levelUpText.gameObject.SetActive(false);
+
+        // (기존에 쓰던 UI 자동 할당들)
+        healthSlider = healthSlider ?? GameObject.Find("PlayerHealthSlider")?.GetComponent<Slider>();
+        healthText = healthText ?? GameObject.Find("PlayerHealthText")?.GetComponent<TextMeshProUGUI>();
+        expText = expText ?? GameObject.Find("PlayerExpText")?.GetComponent<TextMeshProUGUI>();
+        ammoText = ammoText ?? GameObject.Find("AmmoText")?.GetComponent<TextMeshProUGUI>();
     }
 
     private void Start()
@@ -210,11 +218,25 @@ public class Player : MonoBehaviour
     IEnumerator Reload()
     {
         isReloading = true;
-        yield return new WaitForSeconds(1f);
+
+        // ① 재장전이 시작될 때 텍스트 켜기
+        uiManager?.ShowReloadText();
+
+        // 실제 재장전 시간 대기
+        float delay = currentWeapon != null
+            ? currentWeapon.reloadTime
+            : 1f;
+        yield return new WaitForSeconds(delay);
+
+        // 탄창 채우기
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
         isReloading = false;
+
+        // ② 재장전이 끝나는 순간 텍스트 끄기
+        uiManager?.HideReloadText();
     }
+
 
     void ShootWeapon()
     {
@@ -238,7 +260,7 @@ public class Player : MonoBehaviour
             bullet.speed = speed;
             bullet.maxTravelDistance = range;
 
-            
+
             bullet.damage = baseDamage + weaponDmg;
         }
     }
@@ -321,7 +343,7 @@ public class Player : MonoBehaviour
     private IEnumerator LevelUpCoroutine()
     {
         levelUpText.gameObject.SetActive(true);
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         levelUpText.gameObject.SetActive(false);
     }
 
@@ -368,5 +390,8 @@ public class Player : MonoBehaviour
         baseDamage += amount;
         Debug.Log($"[Player] IncreaseDamage → +{amount} (now {baseDamage})");
     }
+
+
+
 }
 
