@@ -141,7 +141,7 @@ public class Player : MonoBehaviour
             StartCoroutine(Reload());
 
         // 스킬 재사용 (예: X키)
-        if (Input.GetKeyDown(KeyCode.X))
+        if (Input.GetKeyDown(KeyCode.P))
             SelectionData.Instance.SelectedSkill?.Activate(gameObject);
     }
 

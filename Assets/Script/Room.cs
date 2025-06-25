@@ -7,7 +7,7 @@ public class Room : MonoBehaviour
     [Header("이 방의 좌표")]
     public Vector2Int myRoomPos;
 
-    [Header("시작 방 여부 (플레이어가 처음 스폰되는 방)")]
+    [Header("시작 방 여부")]
     public bool isStartRoom = false;
 
     [Header("문들")]
@@ -16,29 +16,27 @@ public class Room : MonoBehaviour
     public GameObject doorLeft;
     public GameObject doorRight;
 
-    [Header("몬스터 스폰")]
+    [Header("몬스터")]
     public GameObject monsterPrefab;
     public int monsterCount = 3;
     public float spawnAreaWidth = 6f;
     public float spawnAreaHeight = 6f;
 
-    // 클리어 여부 외부에서 읽기 전용
+    // 원래 문 활성화 상태 저장용
+    [HideInInspector] public bool origUp, origDown, origLeft, origRight;
+
+    // 클리어 여부
     public bool cleared { get; private set; } = false;
 
     private List<GameObject> spawnedMonsters = new List<GameObject>();
 
-    /// <summary>
-    /// 플레이어가 이 방으로 들어올 때 호출 (DoorPortal에서)
-    /// </summary>
+    // 플레이어 입장 시 호출
     public void OnPlayerEnter()
     {
-        // 시작 방이거나 이미 클리어된 방이면 아무 일도 하지 않음
         if (isStartRoom || cleared) return;
 
-        // 문 닫고
+        // 문 닫기
         SetDoorsActive(false);
-
-        // 몬스터 스폰
         StartCoroutine(SpawnMonstersAfterDelay(1f));
     }
 
@@ -57,7 +55,6 @@ public class Room : MonoBehaviour
             spawnedMonsters.Add(m);
         }
 
-        // 몬스터 전멸 체크 시작
         StartCoroutine(CheckMonsters());
     }
 
@@ -65,29 +62,33 @@ public class Room : MonoBehaviour
     {
         while (true)
         {
-            // 죽은(null) 몬스터 제거
             spawnedMonsters.RemoveAll(x => x == null);
-
             if (spawnedMonsters.Count == 0)
             {
-                // 전부 잡혔으면 클리어
                 cleared = true;
-                SetDoorsActive(true);
+                // ▶ 원래 있던 문만 복원
+                RestoreOriginalDoors();
                 yield break;
             }
-
             yield return new WaitForSeconds(0.5f);
         }
     }
 
-    /// <summary>
-    /// Up/Down/Left/Right 문을 한꺼번에 켜거나 끕니다.
-    /// </summary>
+    // Up/Down/Left/Right 문을 한꺼번에 켜거나 끕니다.
     public void SetDoorsActive(bool on)
     {
-        if (doorUp != null) doorUp.SetActive(on);
-        if (doorDown != null) doorDown.SetActive(on);
-        if (doorLeft != null) doorLeft.SetActive(on);
-        if (doorRight != null) doorRight.SetActive(on);
+        doorUp?.SetActive(on);
+        doorDown?.SetActive(on);
+        doorLeft?.SetActive(on);
+        doorRight?.SetActive(on);
+    }
+
+    // ▶ 클리어 후 "원래 있던 문"만 켭니다.
+    public void RestoreOriginalDoors()
+    {
+        if (doorUp != null) doorUp.SetActive(origUp);
+        if (doorDown != null) doorDown.SetActive(origDown);
+        if (doorLeft != null) doorLeft.SetActive(origLeft);
+        if (doorRight != null) doorRight.SetActive(origRight);
     }
 }
