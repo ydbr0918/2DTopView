@@ -5,7 +5,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Enemy : MonoBehaviour
 {
-    // ─── 1) SpriteRenderer 캐싱 필드 추가 ───
+   
     private SpriteRenderer sR;
 
     [Header("Movement")]
@@ -28,7 +28,7 @@ public class Enemy : MonoBehaviour
 
     void Awake()
     {
-        // ─── 2) Awake 에서 SpriteRenderer 가져오기 ───
+    
         sR = GetComponent<SpriteRenderer>();
     }
 
@@ -86,11 +86,11 @@ public class Enemy : MonoBehaviour
             moveDirection = Vector2.zero;
         }
 
-        // ─── 3) 좌우 이동 시 스프라이트 반전 ───
+        
         if (moveDirection.x != 0)
         {
-            // moveDirection.x > 0 이면 오른쪽으로 움직이는 중 → flipX = false
-            // moveDirection.x < 0 이면 왼쪽으로 움직이는 중 → flipX = true
+       
+       
             sR.flipX = moveDirection.x < 0;
         }
     }

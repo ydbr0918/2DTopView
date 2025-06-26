@@ -94,10 +94,9 @@ public class Player : MonoBehaviour
                 Debug.LogWarning("[Player] LevelUpText 오브젝트를 찾을 수 없습니다!");
         }
 
-        // 시작 시 무조건 숨기기
         if (levelUpText != null)
             levelUpText.gameObject.SetActive(false);
-        // 자동 UI 할당 (씬에 오브젝트가 있으면)
+        
         healthSlider = healthSlider ?? GameObject.Find("PlayerHealthSlider")?.GetComponent<Slider>();
         healthText = healthText ?? GameObject.Find("PlayerHealthText")?.GetComponent<TextMeshProUGUI>();
         expText = expText ?? GameObject.Find("PlayerExpText")?.GetComponent<TextMeshProUGUI>();
@@ -114,7 +113,7 @@ public class Player : MonoBehaviour
 
     private void InitNewGame()
     {
-        // ▶ HP/EXP/AMMO 기본 초기화
+        // 기본 초기화
         currentHp = maxHp;
         exp = 0;
         expToNext = 10;
@@ -123,22 +122,22 @@ public class Player : MonoBehaviour
         UpdateExpUI();
         UpdateAmmoUI();
 
-        // ▶ 무기/스킬 선택값 가져오기
+        // ▶무기/스킬 선택값 가져오기
         weaponData = SelectionData.Instance.SelectedWeapon;
-        // ① 무기 원본 수치
+        //무기 원본 수치
         float weaponFireRate = weaponData != null ? weaponData.fireRate : 0.5f;
         float weaponBulletSpeed = weaponData != null ? weaponData.bulletSpeed : 5f;
         int weaponBaseDamage = weaponData != null ? weaponData.damage : 10;
 
-        // ② 런타임 변수에 복사
+        //런타임 변수에 복사
         runtimeFireRate = weaponFireRate;
         runtimeBulletSpeed = weaponBulletSpeed;
         runtimeBaseDamage = weaponBaseDamage;
 
-        // ▶ 스킬 버프 한 번 적용 (AmmoBoostSkill, DamageBoostSkill 등)
+        // 스킬 버프
         SelectionData.Instance.SelectedSkill?.Activate(gameObject);
 
-        // ▶ UI / 쿨다운 동기화
+        // UI / 쿨다운 동기화
         UpdateAmmoUI();
         lastShotTime = Time.time - runtimeFireRate;
     }
@@ -149,7 +148,7 @@ public class Player : MonoBehaviour
         SaveManager.LoadGame();
         var d = SaveManager.LoadedData;
 
-        // ▶ 저장된 HP/EXP/AMMO 복원
+        // 저장된 HP복원
         level = d.level;
         exp = d.exp;
         maxHp = d.maxHp;
@@ -157,17 +156,17 @@ public class Player : MonoBehaviour
         maxAmmo = d.maxAmmo;
         currentAmmo = d.currentAmmo;
 
-        // ▶ 저장된 런타임 스탯 복원
+        // 복원
         runtimeFireRate = d.savedFireRate;
         runtimeBulletSpeed = d.savedBulletSpeed;
         runtimeBaseDamage = d.savedBaseDamage;
 
-        // ▶ UI 업데이트
+        
         UpdateHealthUI();
         UpdateExpUI();
         UpdateAmmoUI();
 
-        // ▶ 스킬은 이미 저장된 버프가 runtimeBaseDamage에 반영되어 있으므로 재적용 불필요
+   
     }
     void Update()
     {
@@ -247,17 +246,17 @@ public class Player : MonoBehaviour
 
     private void ShootWeapon()
     {
-        // 1) 발사 방향 결정
+        
         Vector2 shootDir = nearestEnemy != null
             ? (nearestEnemy.position - transform.position).normalized
             : lastMoveDirection;
 
-        // 2) currentWeapon이 null 아니면 속성, 아니면 기본값
+       
         int shotCount = currentWeapon != null ? currentWeapon.bulletPerShot : 1;
         float spreadAngle = currentWeapon != null ? currentWeapon.spreadAngle : 0f;
         float range = currentWeapon != null ? currentWeapon.range : 10f;
 
-        // 3) 실제 발사 루프
+       
         for (int i = 0; i < shotCount; i++)
         {
             float angle = Random.Range(-spreadAngle / 2f, spreadAngle / 2f);
@@ -267,11 +266,11 @@ public class Player : MonoBehaviour
             var bullet = go.GetComponent<Bullet>();
             if (bullet == null) continue;
 
-            // 4) 방향·속도·사거리·데미지 세팅
+         
             bullet.SetDirection(dir);
-            bullet.speed = runtimeBulletSpeed;  // “0 데미지” 문제 원인 해결
+            bullet.speed = runtimeBulletSpeed;  
             bullet.maxTravelDistance = range;
-            bullet.damage = runtimeBaseDamage;   // 스킬 버프 포함 최종 데미지
+            bullet.damage = runtimeBaseDamage;   
         }
     }
 
@@ -327,7 +326,7 @@ public class Player : MonoBehaviour
         UpdateExpUI();
 
         if (didLevelUp)
-            ShowLevelUpText();  // ← 여기를 꼭 추가!
+            ShowLevelUpText();  
     }
 
 
@@ -366,8 +365,7 @@ public class Player : MonoBehaviour
 
     public void IncreaseDamage(int amount)
     {
-        // 런타임 데미지로 관리하고 계시다면 runtimeBaseDamage 를,
-        // 아니면 원래 baseDamage 필드를 사용하셔도 좋습니다.
+     
         runtimeBaseDamage += amount;
         Debug.Log($"[Player] DamageBoostSkill 적용 → +{amount}, 현재 베이스 데미지 = {runtimeBaseDamage}");
     }

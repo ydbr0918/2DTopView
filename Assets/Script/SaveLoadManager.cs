@@ -6,9 +6,7 @@ public static class SaveLoadManager
     private static string fileName = "playerSave.json";
     private static string FilePath => Path.Combine(Application.persistentDataPath, fileName);
 
-    /// <summary>
-    /// JSON으로 직렬화해 파일로 저장
-    /// </summary>
+
     public static void Save(PlayerSaveData data)
     {
         string json = JsonUtility.ToJson(data, prettyPrint: true);
@@ -16,10 +14,7 @@ public static class SaveLoadManager
         Debug.Log($"[Save] 저장 완료 → {FilePath}");
     }
 
-    /// <summary>
-    /// 저장 파일이 있으면 JSON을 역직렬화해 반환,
-    /// 없으면 null
-    /// </summary>
+
     public static PlayerSaveData Load()
     {
         if (!File.Exists(FilePath))

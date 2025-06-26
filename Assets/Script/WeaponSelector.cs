@@ -31,20 +31,19 @@ public class WeaponSelector : MonoBehaviour
 
     private void UpdateUI()
     {
-        // 전부 껐다가 현재 것만 켜기
+ 
         for (int i = 0; i < weaponIcons.Count; i++)
             weaponIcons[i].SetActive(i == currentIndex);
     }
 
-    /// <summary>
-    /// “게임 시작” 버튼의 OnClick 에 연결할 메서드
-    /// </summary>
+
+
     public void ConfirmWeapon()
     {
-        // 현재 화면에 켜진 WeaponIcon 중 currentIndex 번째를 선택했다
+    
         SelectionData.Instance.SetSelectedWeapon(currentIndex);
 
-        // 씬 전환(예: SelectRoom → TopViewMap_1) 호출
+      
         SceneManager.LoadScene("TopViewMap_1");
     }
 }

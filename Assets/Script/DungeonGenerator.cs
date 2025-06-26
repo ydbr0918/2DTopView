@@ -17,32 +17,31 @@ public class DungeonGenerator : MonoBehaviour
     [Header("끝 방 포탈 프리팹")]
     public GameObject portalPrefab;
 
-    // 생성된 방 좌표 & 스크립트 참조 보관
+
     private HashSet<Vector2Int> occupied = new HashSet<Vector2Int>();
     private List<Vector2Int> roomPositions = new List<Vector2Int>();
     private Dictionary<Vector2Int, Room> rooms = new Dictionary<Vector2Int, Room>();
 
     private bool threeNeighborRoomExists = false;
 
-    /// <summary>던전에 존재하는 모든 방 좌표 리스트를 외부에서 가져갈 수 있도록</summary>
+
     public List<Vector2Int> RoomPositions => roomPositions;
 
    
 
-    /// <summary>클리어된 방 좌표만 골라서 외부에 노출</summary>
     public List<Vector2Int> ClearedRooms
         => roomPositions.Where(p => rooms[p].cleared).ToList();
 
     void Start()
     {
-        // ★ 저장된 게임이 있으면 불러오기 분기 ★
+
         if (SaveManager.HasSave)
         {
-            // 1) 세이브 파일 로드
+          
             SaveManager.LoadGame();
             var d = SaveManager.LoadedData;
 
-            // 2) 저장된 좌표 리스트로 방들 복원 (isStartRoom 설정 포함)
+            
             occupied.Clear();
             roomPositions.Clear();
             rooms.Clear();
@@ -53,7 +52,7 @@ public class DungeonGenerator : MonoBehaviour
                 CreateRoomAt(coord, isStart);
             }
 
-            // 3) 이미 클리어된 방들 복원
+           
             foreach (var sv in d.clearedRooms)
             {
                 Vector2Int coord = sv.ToVector2Int();
@@ -62,10 +61,10 @@ public class DungeonGenerator : MonoBehaviour
                 room.RestoreOriginalDoors();
             }
 
-            // 4) 원래 이웃 정보대로 문 세팅
+         
             SetupAllDoors();
 
-            // 5) 플레이어 저장 위치에 스폰
+      
             Vector2Int cp = d.currentRoomPos.ToVector2Int();
             Instantiate(playerPrefab,
                         new Vector3(cp.x * roomSpacing, cp.y * roomSpacing, 0f),
@@ -73,7 +72,7 @@ public class DungeonGenerator : MonoBehaviour
         }
         else
         {
-            // 저장된 게임이 없으면 기존 랜덤 생성
+          
             GenerateDungeon();
         }
     }
@@ -84,11 +83,10 @@ public class DungeonGenerator : MonoBehaviour
         roomPositions.Clear();
         rooms.Clear();
 
-        // 1) 시작 방 (0,0)
+      
         Vector2Int start = Vector2Int.zero;
         CreateRoomAt(start, true);
 
-        // 2) 나머지 방 생성
         Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
         int created = 1;
         while (created < roomCount)
@@ -119,8 +117,7 @@ public class DungeonGenerator : MonoBehaviour
             created++;
         }
 
-        // 3) 각 방에 문 세팅
-        // 예시: DungeonGenerator.cs 의 문 세팅 부분
+       
         foreach (var pos in roomPositions)
         {
             var roomComp = rooms[pos];
@@ -140,17 +137,17 @@ public class DungeonGenerator : MonoBehaviour
             TrySetDoor(roomComp.gameObject, pos, Vector2Int.right, "Right Door", new Vector3(-2, 0, 0));
         }
 
-        // 4) 플레이어 스폰
+      
         Instantiate(playerPrefab,
                     new Vector3(start.x * roomSpacing, start.y * roomSpacing, 0f),
                     Quaternion.identity);
 
-        // 5) “끝 방” 결정: 시작방에서 맨해튼 거리가 가장 먼 방
+        
         Vector2Int exitPos = roomPositions
             .OrderByDescending(p => Mathf.Abs(p.x - start.x) + Mathf.Abs(p.y - start.y))
             .First();
 
-        // 그 방에 isExitRoom = true, portalPrefab 할당
+ 
         var exitRoom = rooms[exitPos];
         exitRoom.isExitRoom = true;
         exitRoom.portalPrefab = portalPrefab;
@@ -207,7 +204,7 @@ public class DungeonGenerator : MonoBehaviour
         // 문 켜/끄기
         tr.gameObject.SetActive(hasNeighbor);
 
-        // 인접 방이 있을 때만 포탈 세팅
+        
         if (hasNeighbor)
         {
             var portal = tr.GetComponent<DoorPortal>();
@@ -217,11 +214,11 @@ public class DungeonGenerator : MonoBehaviour
         }
     }
 
-    // DoorPortal → 플레이어 텔레포트용
+   
     public Vector3 GetRoomWorldPos(Vector2Int p)
         => new Vector3(p.x * roomSpacing, p.y * roomSpacing, 0f);
 
-    // DoorPortal → Room.OnPlayerEnter 호출용
+
     public Room GetRoomScript(Vector2Int p)
     {
         rooms.TryGetValue(p, out var r);
